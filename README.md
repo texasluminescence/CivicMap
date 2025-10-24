@@ -1,4 +1,4 @@
-# CivicMap 🗺️
+# CivicMap 
 
 **Connecting Austin residents to local political events that matter to them.**
 
