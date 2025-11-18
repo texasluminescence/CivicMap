@@ -30,6 +30,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+
+# venv 
+venv/
+ml/venv/
+*.pyc
+__pycache__/
+
 # env files (can opt-in for committing if needed)
 .env*.local
 .env.local
