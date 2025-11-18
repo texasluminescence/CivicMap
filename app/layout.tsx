@@ -1,6 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
+  metadataBase: new URL('http://localhost:3000'),
   title: "CivicMap",
   description: "Explore civic events in your city",
 };
