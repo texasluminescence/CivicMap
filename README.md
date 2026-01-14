@@ -119,7 +119,6 @@ CivicMap uses ML for two key features:
 - Khushi Bhalani
 
 ### Backend Team
-- Adrian Casares
 - Ved Puranik
 - Hana Alsayed
 - Anshu Siripurapu
@@ -128,17 +127,6 @@ CivicMap uses ML for two key features:
 - Nidhi Ilanthalavian
 - Sasha Haltom
 - Raina James
-
----
-
-## 🙏 Acknowledgments
-
-- Texas Luminescence (at the University of Texas at Austin) for project support
-- Democracy Works for civic engagement inspiration
-- Austin City Government for open data access
-- All contributors and team members
-
----
 
 ## 📧 Contact
 
