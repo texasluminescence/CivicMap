@@ -1,138 +1,160 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient"; 
-import MiniEventCard, { Tag } from "./MiniEventCard";
-import { CompassIcon, UserIcon } from "./Icons";
+import React, { useState } from "react";
+import MiniEventCard from "@/components/MiniEventCard";
+import { mockEvents } from "@/lib/mockEvents";
 import { useRouter } from "next/navigation";
 import SearchAndFilterBar from "./SearchAndFilterBar";
+import BottomNav from "@/components/BottomNav";
 
-interface EventData {
-  id: string;
-  title: string;
-  location: string;
-  event_date: string | null; 
-  description: string;
-  image_url?: string;
-  category: string | null;
-  tone: string | null; 
-  tags?: Tag[];
-}
-
-const formatEventDate = (dateString: string | null): string => {
-  if (!dateString) return "Date/Time N/A";
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      throw new Error("Invalid date format");
-    }
-    return date.toLocaleString();
-  } catch (e) {
-    console.error("Failed to parse date:", dateString, e);
-    return "Invalid Date";
-  }
-};
-
-const FeedScreen: React.FC = () => {
-  const [events, setEvents] = useState<EventData[]>([]);
+export default function FeedScreen() {
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(`*, category, tone, event_date`) 
-        .limit(20);
+  // --- State Hooks ---
+  const [events, setEvents] = useState(mockEvents);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "forYou">("all");
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedTones, setSelectedTones] = useState<string[]>([]);
 
-      if (error) {
-        console.error("Supabase error:", error.message);
-      } else {
-        const mappedEvents: EventData[] = (data || []).map((event: any) => {
-          
-          const category = event.category || "";
-          
-          const toneString = event.tone || "";
-          const toneLabels = toneString.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
-          
-          const tags: Tag[] = [];
-          
-          if (category) {
-            tags.push({
-              id: 'category',
-              label: category,
-              type: 'Topic'
-            });
-          }
-          
-          if (toneLabels.length > 0) {
-            tags.push({
-              id: 'tone',
-              label: toneLabels[0],
-              type: 'Custom'
-            });
-          }
-          
-          if (tags.length === 0) {
-            tags.push({ 
-              id: 'default', 
-              label: "Community", 
-              type: 'Topic' 
-            });
-          }
+  const toggleValue = (value: string, setFn: React.Dispatch<React.SetStateAction<string[]>>) => {
+    setFn((prev) =>
+      prev.includes(value)
+        ? prev.filter((v) => v !== value)
+        : [...prev, value]
+    );
+  };
 
-          return {
-            ...event,
-            tags: tags,
-          };
-        });
-        
-        setEvents(mappedEvents);
-      }
-    };
-    fetchEvents();
-  }, []);
+  // --- Handlers ---
+  const handleToggleBookmark = (eventId: string, newState: boolean) => {
+    setBookmarkedIds((prev) =>
+      newState ? [...prev, eventId] : prev.filter((id) => id !== eventId)
+    );
+    console.log(`Bookmark toggled for ${eventId}: ${newState}`);
+  };
 
+  const handleCardClick = (eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (!event) return;
+    localStorage.setItem("selectedEvent", JSON.stringify(event));
+    router.push(`/events/${eventId}`);
+  };
+
+  // --- Filtered Events ---
+  const topicTags = React.useMemo(() => {
+    return Array.from(
+      new Set(
+        events.flatMap((e) =>
+          e.tags.filter((t) => t.type === "Topic").map((t) => t.label)
+        )
+      )
+    );
+  }, [events]);
+
+  const toneTags = React.useMemo(() => {
+    return Array.from(
+      new Set(
+        events.flatMap((e) =>
+          e.tags.filter((t) => t.type === "Tone").map((t) => t.label)
+        )
+      )
+    );
+  }, [events]);
+
+
+
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const eventTopics = event.tags
+      .filter((t) => t.type === "Topic")
+      .map((t) => t.label);
+
+    const eventTones = event.tags
+      .filter((t) => t.type === "Tone")
+      .map((t) => t.label);
+
+    const matchesTopics =
+      selectedTopics.length === 0 ||
+      selectedTopics.every((t) => eventTopics.includes(t));
+
+    const matchesTones =
+      selectedTones.length === 0 ||
+      selectedTones.every((t) => eventTones.includes(t));
+
+    return matchesSearch && matchesTopics && matchesTones;
+  });
+
+
+  // --- Render ---
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white shadow-md px-4 py-3 flex justify-between items-center sticky top-0 z-10">
-        <img
-          src="/1.png"
-          alt="CivicMap Logo - Get Involved"
-          className="h-12 w-auto mr-4"
-        />
+      {/* Header */}
+      <header className="bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-center items-center sticky top-0 z-10 gap-2">
+        <div className="flex items-center">
+          <img
+            src="/1.png"
+            alt="CivicMap Logo"
+            className="h-12 w-auto mr-4"
+          />
+        </div>
 
-        <SearchAndFilterBar />
+        <SearchAndFilterBar
+          searchQuery={searchQuery}
+          activeTab={activeTab}
+
+          topicTags={topicTags}
+          toneTags={toneTags}
+
+          selectedTopics={selectedTopics}
+          selectedTones={selectedTones}
+
+          onSearchChange={setSearchQuery}
+          onTabChange={setActiveTab}
+
+          onTopicToggle={(tag) => toggleValue(tag, setSelectedTopics)}
+          onToneToggle={(tag) => toggleValue(tag, setSelectedTones)}
+        />
 
       </header>
 
-      <main className="flex-grow p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-24 gap-6">
-        {events.map((event) => (
-          <MiniEventCard
-            key={event.id}
-            id={event.id}
-            title={event.title}
-            location={event.location}
-            eventDate={formatEventDate(event.event_date)}
-            tags={event.tags || [{ label: "Community", type: "Topic" }]} 
-            imageUrl={event.image_url}
-            isBookmarked={false} 
-            onClick={(id) => router.push(`/events/${id}`)}
-          />
-        ))}
+      {/* Main Content Grid */}
+      <main className="p-6">
+        {filteredEvents.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredEvents.map((event) => (
+              <MiniEventCard
+                key={event.id}
+                id={event.id}
+                title={event.title}
+                location={event.location}
+                eventDate={event.event_date}
+                tags={event.tags}
+                imageUrl={event.image_url}
+                isBookmarked={bookmarkedIds.includes(event.id)}
+                onClick={handleCardClick}
+                onToggleSave={handleToggleBookmark}
+              />
+            ))}
+          </div>
+        ) : (
+          /* Empty State UI */
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="bg-gray-200 p-6 rounded-full mb-4">
+              <span className="text-4xl">🔍</span>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800">No events found</h2>
+            <p className="text-gray-500 mt-2">
+              Try adjusting your search or filters to find what you're looking for.
+            </p>
+          </div>
+        )}
       </main>
-
-      <nav className="flex w-full justify-around bg-white border-t border-gray-200 py-4 shadow-sm fixed bottom-0">
-        <button className="flex flex-col items-center text-blue-700">
-          <CompassIcon />
-          <span className="text-sm">Explore</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-500">
-          <UserIcon />
-          <span className="text-sm">Profile</span>
-        </button>
-      </nav>
+      {/* Sticky Bottom Nav */}
+      <BottomNav />
     </div>
   );
-};
-
-export default FeedScreen;
+}
