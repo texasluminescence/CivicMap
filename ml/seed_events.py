@@ -15,24 +15,34 @@ Env vars expected:
 Dependencies:
   pip install requests python-dateutil supabase
 """
-
 from __future__ import annotations
+from dotenv import load_dotenv
 import os
+
+load_dotenv(".env.local")
+
+
 import time
 import json
 import re
 from typing import List, Dict, Any
 from urllib.parse import urlparse
-
+from pathlib import Path
+load_dotenv(Path(__file__).parent.parent / ".env.local")
 import requests
 from dateutil import parser as dateparser
-from supabase import create_client, Client
+try:
+    from supabase import create_client, Client
+except Exception:
+    # Defer the missing dependency error until runtime with a clear message.
+    create_client = None
+    Client = None
 
 # ----------------------
 # Config (safe defaults)
 # ----------------------
 SERP_QUERIES = [
-    "Austin civic meeting",
+    " political events in austin, tx",
     # add at most one more query if needed
 ]
 MAX_EVENTS = 10
@@ -50,12 +60,14 @@ SCHEMA_MAPPING = {
     "source": "source",
     "category": "category",
 }
-
-# ----------------------
-# Clients
-# ----------------------
-
 def get_supabase() -> Client:
+    if create_client is None:
+        raise RuntimeError("Missing 'supabase' package; install it with: pip install supabase")
+    url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    key = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    if not url or not key:
+        raise RuntimeError("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    return create_client(url, key)
     url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
     key = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
     if not url or not key:
@@ -161,16 +173,14 @@ def normalize_event(raw: Dict[str, Any], page_text: str) -> Dict[str, Any]:
 
 def insert_events(sb: Client, events: List[Dict[str, Any]]):
     if not events:
+        print("No events to insert")
         return
-    # map to schema
     payload = []
     for e in events:
-        row = {}
-        for tgt, src in SCHEMA_MAPPING.items():
-            row[tgt] = e.get(src)
+        row = {tgt: e.get(src) for tgt, src in SCHEMA_MAPPING.items()}
         payload.append(row)
-
-    sb.table(SUPABASE_TABLE).insert(payload).execute()
+    # print instead of inserting
+    print("Payload to insert:", json.dumps(payload, indent=2))
 
 # ----------------------
 # Main pipeline
