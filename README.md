@@ -46,39 +46,6 @@ CivicMap is a web platform that solves the fragmented discovery of civic engagem
 - npm or yarn
 - Supabase account
 
-### Installation
-
-1. **Clone the repository**
-```bash
-   git clone https://github.com/your-username/civicmap.git
-   cd civicmap
-```
-
-2. **Install dependencies**
-```bash
-   npm install
-```
-
-3. **Set up environment variables**
-```bash
-   cp .env.example .env.local
-```
-   
-   Edit `.env.local` and add your Supabase credentials:
-```env
-   NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-4. **Run the development server**
-```bash
-   npm run dev
-```
-
-5. **Open your browser**
-   
-   Visit [http://localhost:3000](http://localhost:3000)
-
 ---
 
 ## 🤖 Machine Learning
@@ -87,8 +54,7 @@ CivicMap uses ML for two key features:
 
 1. **Automatic Event Categorization**
    - Tags events with relevant topics (Housing, Environment, Education, etc.)
-   - Sprint 1-2: Keyword-based matching
-   - Sprint 3+: Hugging Face zero-shot classification
+   - Hugging Face zero-shot classification -> BERT models
 
 2. **Event Tone Classification**
    - Classifies events as: Informational, Contentious, Action-Oriented, Procedural, Celebration
