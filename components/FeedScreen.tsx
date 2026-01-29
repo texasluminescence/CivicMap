@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient"; 
+import { supabase } from "../lib/supabaseClient";
 import MiniEventCard, { Tag } from "./MiniEventCard";
 import { CompassIcon, UserIcon } from "./Icons";
 import { useRouter } from "next/navigation";
@@ -11,11 +11,11 @@ interface EventData {
   id: string;
   title: string;
   location: string;
-  event_date: string | null; 
+  event_date: string | null;
   description: string;
   image_url?: string;
   category: string | null;
-  tone: string | null; 
+  tone: string | null;
   tags?: Tag[];
 }
 
@@ -41,21 +41,22 @@ const FeedScreen: React.FC = () => {
     const fetchEvents = async () => {
       const { data, error } = await supabase
         .from("events")
-        .select(`*, category, tone, event_date`) 
+        .select(`*, category, tone, event_date`)
+        .order("event_date", { ascending: false })
         .limit(20);
 
       if (error) {
         console.error("Supabase error:", error.message);
       } else {
         const mappedEvents: EventData[] = (data || []).map((event: any) => {
-          
+
           const category = event.category || "";
-          
+
           const toneString = event.tone || "";
           const toneLabels = toneString.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
-          
+
           const tags: Tag[] = [];
-          
+
           if (category) {
             tags.push({
               id: 'category',
@@ -63,7 +64,7 @@ const FeedScreen: React.FC = () => {
               type: 'Topic'
             });
           }
-          
+
           if (toneLabels.length > 0) {
             tags.push({
               id: 'tone',
@@ -71,12 +72,12 @@ const FeedScreen: React.FC = () => {
               type: 'Custom'
             });
           }
-          
+
           if (tags.length === 0) {
-            tags.push({ 
-              id: 'default', 
-              label: "Community", 
-              type: 'Topic' 
+            tags.push({
+              id: 'default',
+              label: "Community",
+              type: 'Topic'
             });
           }
 
@@ -85,7 +86,7 @@ const FeedScreen: React.FC = () => {
             tags: tags,
           };
         });
-        
+
         setEvents(mappedEvents);
       }
     };
@@ -113,9 +114,9 @@ const FeedScreen: React.FC = () => {
             title={event.title}
             location={event.location}
             eventDate={formatEventDate(event.event_date)}
-            tags={event.tags || [{ label: "Community", type: "Topic" }]} 
+            tags={event.tags || [{ label: "Community", type: "Topic" }]}
             imageUrl={event.image_url}
-            isBookmarked={false} 
+            isBookmarked={false}
             onClick={(id) => router.push(`/events/${id}`)}
           />
         ))}
