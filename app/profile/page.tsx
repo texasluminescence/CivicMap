@@ -58,8 +58,8 @@ const preferenceCategories = [
     description: "Select civic topics you care about.",
   },
   {
-    id: "tones",
-    title: "Tones",
+    id: "styles",
+    title: "Styles",
     description: "Choose the vibe you want for events.",
   },
   {
