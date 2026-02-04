@@ -127,7 +127,10 @@ const FeedScreen: React.FC = () => {
           <CompassIcon />
           <span className="text-sm">Explore</span>
         </button>
-        <button className="flex flex-col items-center text-gray-500">
+        <button
+          onClick={() => router.push("/profile")}
+          className="flex flex-col items-center text-gray-500"
+        >
           <UserIcon />
           <span className="text-sm">Profile</span>
         </button>
