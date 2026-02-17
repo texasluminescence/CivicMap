@@ -1,5 +1,5 @@
 """
-Seed Austin civic events into Supabase using SerpAPI (discovery) + Jina AI (page text).
+Seed Austin civic events into Supabase using SerpAPI (discovery).
 
 IMPORTANT
 - Do NOT hardcode API keys. Read from environment variables.
@@ -8,7 +8,6 @@ IMPORTANT
 
 Env vars expected:
   SERPAPI_API_KEY
-  JINA_API_KEY
   SUPABASE_URL
   SUPABASE_SERVICE_ROLE_KEY
 
@@ -42,7 +41,7 @@ except Exception:
 # Config (safe defaults)
 # ----------------------
 SERP_QUERIES = [
-    " political events in austin, tx",
+    " Political Events in Austin, TX",
     # add at most one more query if needed
 ]
 MAX_EVENTS = 10
@@ -105,34 +104,6 @@ def serpapi_search(query: str) -> List[Dict[str, Any]]:
     return results
 
 # ----------------------
-# Jina AI scraping
-# ----------------------
-
-def jina_fetch_text(url: str) -> str:
-    """
-    Uses Jina Reader to extract readable text from a URL.
-    We only need raw text for downstream sentiment/analysis.
-    """
-    api_key = os.environ.get("JINA_API_KEY")
-    if not api_key:
-        raise RuntimeError("Missing JINA_API_KEY")
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json",
-    }
-    # Reader endpoint pattern
-    reader_url = f"https://r.jina.ai/{url}"
-    r = requests.get(reader_url, headers=headers, timeout=30)
-    r.raise_for_status()
-
-    # Jina may return text/plain or json depending on plan
-    ct = r.headers.get("content-type", "")
-    if "application/json" in ct:
-        return r.json().get("data", {}).get("content", "")
-    return r.text
-
-# ----------------------
 # Helpers
 # ----------------------
 
@@ -152,13 +123,14 @@ def extract_start_time(text: str) -> str | None:
     return None
 
 
-def normalize_event(raw: Dict[str, Any], page_text: str) -> Dict[str, Any]:
+def normalize_event(raw: Dict[str, Any]) -> Dict[str, Any]:
     parsed = urlparse(raw.get("url") or "")
-    event_date = extract_start_time(page_text or raw.get("snippet", ""))
+    snippet = raw.get("snippet", "")
+    event_date = extract_start_time(snippet)
 
     return {
         "title": raw.get("title"),
-        "description": (page_text or raw.get("snippet") or "").strip()[:8000],
+        "description": (snippet or "").strip()[:8000],
         "event_date": event_date,
         "location": "Austin, TX",
         "event_url": raw.get("url"),
@@ -198,12 +170,7 @@ def main():
 
     enriched = []
     for raw in discovered[:MAX_EVENTS]:
-        try:
-            text = jina_fetch_text(raw["url"])
-            time.sleep(SLEEP_BETWEEN_CALLS_SEC)
-        except Exception:
-            text = raw.get("snippet", "")
-        enriched.append(normalize_event(raw, text))
+        enriched.append(normalize_event(raw))
 
     insert_events(sb, enriched)
     print(f"Inserted {len(enriched)} events")
