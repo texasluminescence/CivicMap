@@ -16,6 +16,7 @@ interface MiniEventCardProps {
   tags: Tag[];
   imageUrl?: string;
   onClick: (id: string) => void;
+  colorScheme?: "blue" | "neutral";
   // NEW: Controlled state for bookmark status
   isBookmarked: boolean; 
   // NEW: Handler for bookmark click (uses local state for now, or could be a prop handler)
@@ -29,6 +30,7 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
     eventDate, 
     tags, 
     imageUrl, 
+    colorScheme = "blue",
     isBookmarked: initialBookmarked, // Rename prop to use internal state
     onClick 
 }) => {
@@ -40,6 +42,8 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
     // In a real app, this would trigger an API call
     setIsBookmarked((prev) => !prev);
   };
+
+  const isNeutral = colorScheme === "neutral";
 
   return (
     <article 
@@ -62,14 +66,18 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
           className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full hover:bg-white transition-colors"
           aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
         >
-          <BookmarkIcon isBookmarked={isBookmarked} className="w-5 h-5" />
+          <BookmarkIcon
+            isBookmarked={isBookmarked}
+            colorScheme={isNeutral ? "neutral" : "blue"}
+            className="w-5 h-5"
+          />
         </button>
 
       </div>
       <div className="p-4 flex flex-col flex-grow">
         <h2 className="text-xl font-semibold text-gray-900 mb-1 line-clamp-2">{title}</h2>
         <p className="text-sm text-gray-500 flex items-center gap-1 mb-3">
-            <LocationIcon className="w-4 h-4 text-blue-600" />
+            <LocationIcon className={`w-4 h-4 ${isNeutral ? "text-gray-700" : "text-blue-600"}`} />
             <span className="truncate">{location}</span>
         </p>
         <p className="text-xs text-gray-400 flex items-center gap-1 mb-3">
@@ -80,7 +88,9 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
           {tags.slice(0, 3).map((tag, index) => (
             <span
               key={index}
-              className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full"
+              className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                isNeutral ? "bg-gray-200 text-gray-900" : "bg-blue-100 text-blue-800"
+              }`}
             >
               {tag.label}
             </span>

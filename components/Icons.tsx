@@ -4,6 +4,7 @@ export interface IconProps {
   className?: string;
   isBookmarked?: boolean;
   size?: number;
+  colorScheme?: "blue" | "neutral";
 }
 
 // NEW: Arrow Left Icon for Back Button
@@ -22,13 +23,29 @@ export const ArrowLeftIcon: FC<IconProps> = ({ className = "w-6 h-6" }) => (
     </svg>
 );
 
-export const BookmarkIcon: FC<IconProps> = ({ isBookmarked, className = "w-5 h-5" }) => (
+export const BookmarkIcon: FC<IconProps> = ({
+  isBookmarked,
+  className = "w-5 h-5",
+  colorScheme = "blue",
+}) => (
   <svg
     className={className}
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
-    fill={isBookmarked ? "#0937ac" : "none"}
-    stroke={isBookmarked ? "#0937ac" : "currentColor"}
+    fill={
+      isBookmarked
+        ? colorScheme === "neutral"
+          ? "#111827"
+          : "#0937ac"
+        : "none"
+    }
+    stroke={
+      isBookmarked
+        ? colorScheme === "neutral"
+          ? "#111827"
+          : "#0937ac"
+        : "currentColor"
+    }
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"

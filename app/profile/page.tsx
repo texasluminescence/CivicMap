@@ -93,7 +93,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     console.log("Logging out...");
-    router.push("/auth");
+    router.push("/auth/login");
   };
 
   return (
@@ -133,7 +133,7 @@ export default function ProfilePage() {
                 Personalize what shows up in your feed.
               </p>
             </div>
-            <button className="text-sm font-medium text-blue-600 hover:text-blue-700">
+            <button className="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
               Edit
             </button>
           </div>
@@ -143,18 +143,10 @@ export default function ProfilePage() {
                 key={category.id}
                 className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-gray-900">
-                    {category.title}
-                  </span>
-                  <span className="text-xs text-gray-400">0 selected</span>
-                </div>
+                <span className="font-semibold text-gray-900">
+                  {category.title}
+                </span>
                 <p className="text-sm text-gray-500">{category.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-xs text-gray-400">
-                    No preferences yet
-                  </span>
-                </div>
               </div>
             ))}
           </div>
@@ -176,6 +168,7 @@ export default function ProfilePage() {
                   eventDate={event.event_date}
                   tags={event.tags}
                   imageUrl={event.image_url}
+                  colorScheme="neutral"
                   isBookmarked={true}
                   onClick={() => router.push(`/events/${event.id}`)}
                 />
