@@ -6,46 +6,56 @@ import BottomNav from "@/components/BottomNav";
 import { UserIcon } from "@/components/Icons";
 import { createClient } from "@/lib/supabase/client";
 
-const preferenceCategories = [
-  {
-    id: "topics",
-    title: "Topics",
-    description: "Select civic topics you care about.",
-  },
-  {
-    id: "styles",
-    title: "Styles",
-    description: "Choose the vibe you want for events.",
-  },
-  {
-    id: "formats",
-    title: "Formats",
-    description: "Pick how you want to participate.",
-  },
-  {
-    id: "locations",
-    title: "Locations",
-    description: "Set preferred neighborhoods or travel radius.",
-  },
-  {
-    id: "times",
-    title: "Times",
-    description: "Define your ideal dates and time windows.",
-  },
-];
+interface PreferenceSection {
+  title: string;
+  values: string[];
+}
 
 export default function ProfilePage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [preferences, setPreferences] = useState<PreferenceSection[]>([]);
+  const [loadingPrefs, setLoadingPrefs] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setEmail(user.email ?? "");
-        setFullName(user.user_metadata?.full_name ?? "");
-      }
+
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+
+      setEmail(user.email ?? "");
+      setFullName(user.user_metadata?.full_name ?? "");
+
+      const { data: prefs } = await supabase
+        .from("user_preferences")
+        .select("tone, sector, schedule, format")
+        .eq("user_id", user.id)
+        .single();
+
+      const { data: catPrefs } = await supabase
+        .from("user_category_prefs")
+        .select("category_id, categories(name)")
+        .eq("user_id", user.id);
+
+      const categoryNames: string[] = (catPrefs ?? [])
+        .map((c: Record<string, unknown>) => {
+          const cat = c.categories as { name: string } | null;
+          return cat?.name ?? "";
+        })
+        .filter(Boolean);
+
+      const userPrefs = prefs ?? { tone: [], sector: [], schedule: [], format: [] };
+
+      setPreferences([
+        { title: "Topics", values: categoryNames },
+        { title: "Styles", values: userPrefs.tone ?? [] },
+        { title: "Locations", values: userPrefs.sector ?? [] },
+        { title: "Times", values: userPrefs.schedule ?? [] },
+        { title: "Formats", values: userPrefs.format ?? [] },
+      ]);
+
+      setLoadingPrefs(false);
     });
   }, []);
 
@@ -85,23 +95,44 @@ export default function ProfilePage() {
                 Personalize what shows up in your feed.
               </p>
             </div>
-            <button className="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800">
+            <button
+              onClick={() => router.push("/onboarding?edit=true")}
+              className="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+            >
               Edit
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {preferenceCategories.map((category) => (
-              <div
-                key={category.id}
-                className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2"
-              >
-                <span className="font-semibold text-gray-900">
-                  {category.title}
-                </span>
-                <p className="text-sm text-gray-500">{category.description}</p>
-              </div>
-            ))}
-          </div>
+
+          {loadingPrefs ? (
+            <p className="text-sm text-gray-400">Loading preferences...</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {preferences.map((section) => (
+                <div
+                  key={section.title}
+                  className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2"
+                >
+                  <span className="font-semibold text-gray-900">
+                    {section.title}
+                  </span>
+                  {section.values.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {section.values.map((val) => (
+                        <span
+                          key={val}
+                          className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium"
+                        >
+                          {val}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">None selected</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Saved Events Section */}

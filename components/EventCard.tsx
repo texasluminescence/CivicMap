@@ -1,7 +1,6 @@
 "use client";
 
 import React, { FC, useState } from "react";
-import Image from "next/image";
 import { BookmarkIcon, LocationIcon, TimeIcon } from "./Icons";
 import { Tag } from "@/lib/types";
 import { getTagClasses } from "@/lib/tagColors";
@@ -13,7 +12,6 @@ interface EventCardProps {
   eventDate: string;
   description: string;
   tags: Tag[];
-  imageUrl?: string;
   isBookmarked: boolean;
   onBookmarkToggle: (newState: boolean) => void | Promise<void>;
 }
@@ -24,11 +22,11 @@ const EventCard: FC<EventCardProps> = ({
   eventDate,
   description,
   tags,
-  imageUrl,
   isBookmarked,
   onBookmarkToggle,
 }) => {
   const [saving, setSaving] = useState(false);
+  const [registered, setRegistered] = useState(false);
 
   const handleBookmarkClick = async () => {
     if (saving) return;
@@ -40,37 +38,24 @@ const EventCard: FC<EventCardProps> = ({
     }
   };
 
+  const handleRegister = () => {
+    setRegistered(true);
+  };
+
   return (
-    <article className="w-full max-w-5xl bg-white rounded-xl shadow-lg overflow-hidden flex flex-col lg:flex-row">
-      {/* Image */}
-      <div className="relative w-full lg:w-1/2 h-64 bg-gray-100">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={title}
-            fill
-            className="object-cover"
-            priority
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            No Image
-          </div>
-        )}
-
-        <button
-          onClick={handleBookmarkClick}
-          disabled={saving}
-          aria-label="Toggle bookmark"
-          className="absolute top-3 right-3 bg-white/80 p-2 rounded-full hover:bg-white transition disabled:opacity-50"
-        >
-          <BookmarkIcon isBookmarked={isBookmarked} className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="p-6 flex flex-col gap-4 flex-1">
-        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+    <article className="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
+      <div className="p-6 flex flex-col gap-4">
+        <div className="flex items-start justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+          <button
+            onClick={handleBookmarkClick}
+            disabled={saving}
+            aria-label="Toggle bookmark"
+            className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition disabled:opacity-50 shrink-0 ml-3"
+          >
+            <BookmarkIcon isBookmarked={isBookmarked} className="w-5 h-5" />
+          </button>
+        </div>
 
         <p className="text-gray-700 leading-relaxed">{description}</p>
 
@@ -84,8 +69,7 @@ const EventCard: FC<EventCardProps> = ({
           <span>{eventDate}</span>
         </div>
 
-        {/* Color-coded tags */}
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
             <span
               key={tag.id}
@@ -97,6 +81,18 @@ const EventCard: FC<EventCardProps> = ({
             </span>
           ))}
         </div>
+
+        <button
+          onClick={handleRegister}
+          disabled={registered}
+          className={`mt-2 w-full py-3 rounded-lg font-medium transition ${
+            registered
+              ? "bg-green-100 text-green-700 cursor-default"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          {registered ? "Registered" : "Register for Event"}
+        </button>
       </div>
     </article>
   );

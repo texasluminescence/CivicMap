@@ -29,7 +29,7 @@ export default function AuthScreen() {
           },
         });
         if (error) throw error;
-        router.push("/events");
+        router.push("/onboarding");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
