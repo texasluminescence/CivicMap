@@ -85,7 +85,6 @@ CivicMap uses ML for two key features:
 - Khushi Bhalani
 
 ### Backend Team
-- Ved Puranik
 - Hana Alsayed
 - Anshu Siripurapu
 
