@@ -12,9 +12,10 @@ interface MiniEventCardProps {
   eventDate: string;
   tags: Tag[];
   imageUrl?: string;
+  colorScheme?: "blue" | "neutral";
   isBookmarked: boolean;
   onClick: (id: string) => void;
-  onToggleSave: (id: string, newState: boolean) => void;
+  onToggleSave?: (id: string, newState: boolean) => void;
 }
 
 const MiniEventCard: FC<MiniEventCardProps> = ({
@@ -24,10 +25,13 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
   eventDate,
   tags,
   imageUrl,
+  colorScheme = "blue",
   isBookmarked,
   onClick,
   onToggleSave,
 }) => {
+  const isNeutral = colorScheme === "neutral";
+
   return (
     <article
       onClick={() => onClick(id)}
@@ -51,12 +55,16 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onToggleSave(id, !isBookmarked);
+            onToggleSave?.(id, !isBookmarked);
           }}
           aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
           className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full hover:bg-white transition"
         >
-          <BookmarkIcon isBookmarked={isBookmarked} className="w-5 h-5" />
+          <BookmarkIcon
+            isBookmarked={isBookmarked}
+            colorScheme={isNeutral ? "neutral" : "blue"}
+            className="w-5 h-5"
+          />
         </button>
       </div>
 
@@ -67,7 +75,7 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
         </h2>
 
         <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-          <LocationIcon className="w-4 h-4 text-blue-600" />
+          <LocationIcon className={`w-4 h-4 ${isNeutral ? "text-gray-700" : "text-blue-600"}`} />
           <span className="truncate">{location}</span>
         </div>
 
