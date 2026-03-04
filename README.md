@@ -39,43 +39,6 @@ CivicMap is a web platform that centralizes the discovery of civic engagement op
 
 ---
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- npm
-- Supabase project with the required tables (see Database Schema below)
-- Python 3.10+ (for ML scripts)
-
-### Setup
-
-```bash
-git clone https://github.com/<your-org>/civicmap.git
-cd civicmap
-npm install
-```
-
-Create a `.env.local` file with your Supabase credentials:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
-```
-
-```bash
-npm run dev
-```
-
-### Available Scripts
-
-- `npm run dev` -- Start development server
-- `npm run build` -- Build for production
-- `npm run start` -- Run production build
-- `npm run lint` -- Run ESLint
-
----
-
 ## Database Schema
 
 Key tables in Supabase:
