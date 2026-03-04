@@ -1,15 +1,18 @@
 import "./globals.css";
+import ClientAuthWrapper from "../components/ClientAuthWrapper"; // import the client wrapper
 
 export const metadata = {
-  metadataBase: new URL('http://localhost:3000'),
   title: "CivicMap",
-  description: "Explore civic events in your city",
+  description: "Get involved in local events",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 font-sans">{children}</body>
+      <body className="bg-gray-50 font-sans">
+        {/* Wrap all children with auth check */}
+        <ClientAuthWrapper>{children}</ClientAuthWrapper>
+      </body>
     </html>
   );
 }
