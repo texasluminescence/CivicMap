@@ -35,7 +35,7 @@ CivicMap is a web platform that centralizes the discovery of civic engagement op
 | Database | Supabase (PostgreSQL) |
 | Authentication | Supabase Auth (`@supabase/ssr`) |
 | ML / Data Processing | Python, sentence-transformers, Supabase Python client |
-| Hosting | Vercel |
+| Hosting | AWS EC2 |
 
 ---
 
@@ -99,36 +99,11 @@ Two Python scripts in the `ml/` directory:
    - Reads from and writes back to the Supabase `events` table
 
 2. **Vector Embeddings** (`ml/generate_embeddings.py`)
-   - Generates 384-dimensional embeddings using `sentence-transformers` (all-MiniLM-L6-v2)
-   - Stores embeddings in the `embedding` column for future similarity-based recommendations
+   - Generates 384-dimensional embeddings using sentence-transformers (all-MiniLM-L6-v2)
+   - Combines title, description, and category into a single text for embedding
+   - Stores embeddings in the embedding column for future similarity-based recommendations
 
----
-
-## Project Structure
-
-```
-app/
-  auth/           -- Authentication pages
-  events/[id]/    -- Event detail page
-  onboarding/     -- 5-step preference questionnaire
-  profile/        -- User profile with preferences display/edit
-components/
-  AuthScreen.tsx  -- Login/signup form
-  FeedScreen.tsx  -- Main event feed with search and filters
-  EventCard.tsx   -- Full event detail card
-  MiniEventCard.tsx -- Compact event card for feed grid
-  BottomNav.tsx   -- Navigation bar
-  ClientAuthWrapper.tsx -- Auth guard for protected routes
-lib/
-  supabase/       -- Supabase client (browser + server + middleware)
-  types.tsx        -- Shared type definitions
-  tagColors.tsx   -- Tag color scheme
-ml/
-  tag_events.py   -- Keyword tagging script
-  generate_embeddings.py -- Embedding generation script
-```
-
----
+--- 
 
 ## Team
 
@@ -142,6 +117,7 @@ ml/
 ### Backend
 - Hana Alsayed
 - Anshu Siripurapu
+- Vishal Rajkumar
 
 ### Machine Learning
 - Nidhi Ilanthalavian
