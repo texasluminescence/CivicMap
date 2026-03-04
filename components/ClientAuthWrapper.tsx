@@ -1,28 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+
+const PUBLIC_ROUTES = ["/", "/auth"];
 
 export default function ClientAuthWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState(false);
 
+  const isPublicRoute = PUBLIC_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith("/auth/")
+  );
+
   useEffect(() => {
-    // 1. Check if window exists (client-side)
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("civicmap_token");
-      
-      if (!token) {
+    if (isPublicRoute) {
+      setIsAuthorized(true);
+      return;
+    }
+
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
         router.push("/auth");
       } else {
         setIsAuthorized(true);
       }
-    }
-  }, [router]);
+    });
+  }, [router, pathname, isPublicRoute]);
 
-  // 2. Prevent "Flicker": Don't show children until we know they are logged in
   if (!isAuthorized) {
-    return <div className="h-screen w-full bg-gray-50" />; // Or a loading spinner
+    return <div className="h-screen w-full bg-gray-50" />;
   }
 
   return <>{children}</>;

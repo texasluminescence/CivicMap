@@ -1,22 +1,85 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MiniEventCard from "@/components/MiniEventCard";
-import { mockEvents } from "@/lib/mockEvents";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import SearchAndFilterBar from "./SearchAndFilterBar";
 import BottomNav from "@/components/BottomNav";
+import { Tag } from "@/lib/types";
+
+interface EventData {
+  id: string;
+  title: string;
+  location: string;
+  event_date: string | null;
+  description: string;
+  categories: string | null;
+  tone: string | null;
+  tags: Tag[];
+}
+
+function buildTags(categories: string | null, tone: string | null): Tag[] {
+  const tags: Tag[] = [];
+
+  if (categories) {
+    tags.push({ id: `cat-${categories}`, label: categories, type: "Topic" });
+  }
+
+  if (tone) {
+    tone.split(",").forEach((t, i) => {
+      const trimmed = t.trim();
+      if (trimmed) {
+        tags.push({ id: `tone-${i}-${trimmed}`, label: trimmed, type: "Tone" });
+      }
+    });
+  }
+
+  return tags;
+}
+
+const formatEventDate = (dateString: string | null): string => {
+  if (!dateString) return "TBD";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "TBD";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
 
 export default function FeedScreen() {
   const router = useRouter();
-
-  // --- State Hooks ---
-  const [events, setEvents] = useState(mockEvents);
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "forYou">("all");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTones, setSelectedTones] = useState<string[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("events")
+      .select("id, title, description, location, event_date, categories, tone")
+      .order("event_date", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Failed to fetch events:", error.message);
+        } else {
+          const mapped: EventData[] = (data ?? []).map((e) => ({
+            ...e,
+            tags: buildTags(e.categories, e.tone),
+          }));
+          setEvents(mapped);
+        }
+        setLoading(false);
+      });
+  }, []);
 
   const toggleValue = (value: string, setFn: React.Dispatch<React.SetStateAction<string[]>>) => {
     setFn((prev) =>
@@ -26,12 +89,10 @@ export default function FeedScreen() {
     );
   };
 
-  // --- Handlers ---
   const handleToggleBookmark = (eventId: string, newState: boolean) => {
     setBookmarkedIds((prev) =>
       newState ? [...prev, eventId] : prev.filter((id) => id !== eventId)
     );
-    console.log(`Bookmark toggled for ${eventId}: ${newState}`);
   };
 
   const handleCardClick = (eventId: string) => {
@@ -41,7 +102,6 @@ export default function FeedScreen() {
     router.push(`/events/${eventId}`);
   };
 
-  // --- Filtered Events ---
   const topicTags = React.useMemo(() => {
     return Array.from(
       new Set(
@@ -61,8 +121,6 @@ export default function FeedScreen() {
       )
     );
   }, [events]);
-
-
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
@@ -88,8 +146,6 @@ export default function FeedScreen() {
     return matchesSearch && matchesTopics && matchesTones;
   });
 
-
-  // --- Render ---
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
@@ -105,35 +161,31 @@ export default function FeedScreen() {
         <SearchAndFilterBar
           searchQuery={searchQuery}
           activeTab={activeTab}
-
           topicTags={topicTags}
           toneTags={toneTags}
-
           selectedTopics={selectedTopics}
           selectedTones={selectedTones}
-
           onSearchChange={setSearchQuery}
           onTabChange={setActiveTab}
-
           onTopicToggle={(tag) => toggleValue(tag, setSelectedTopics)}
           onToneToggle={(tag) => toggleValue(tag, setSelectedTones)}
         />
-
       </header>
 
       {/* Main Content Grid */}
       <main className="p-6">
-        {filteredEvents.length > 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500 py-20">Loading events...</p>
+        ) : filteredEvents.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredEvents.map((event) => (
               <MiniEventCard
                 key={event.id}
                 id={event.id}
                 title={event.title}
-                location={event.location}
-                eventDate={event.event_date}
+                location={event.location ?? "Austin, TX"}
+                eventDate={formatEventDate(event.event_date)}
                 tags={event.tags}
-                imageUrl={event.image_url}
                 isBookmarked={bookmarkedIds.includes(event.id)}
                 onClick={handleCardClick}
                 onToggleSave={handleToggleBookmark}
@@ -141,11 +193,7 @@ export default function FeedScreen() {
             ))}
           </div>
         ) : (
-          /* Empty State UI */
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="bg-gray-200 p-6 rounded-full mb-4">
-              <span className="text-4xl">🔍</span>
-            </div>
             <h2 className="text-xl font-semibold text-gray-800">No events found</h2>
             <p className="text-gray-500 mt-2">
               Try adjusting your search or filters to find what you're looking for.
@@ -153,7 +201,7 @@ export default function FeedScreen() {
           </div>
         )}
       </main>
-      {/* Sticky Bottom Nav */}
+
       <BottomNav />
     </div>
   );

@@ -60,7 +60,7 @@ const SearchAndFilterBar: FC<Props> = ({
           />
         </div>
 
-        {/* 🏷 Filter Button */}
+        {/* Filter Button */}
         <div className="relative">
           <button
             onClick={() => setIsFilterOpen((v) => !v)}
@@ -153,7 +153,7 @@ const SearchAndFilterBar: FC<Props> = ({
         </nav>
       </div>
 
-      {/* 🏷 Active Filters */}
+      {/* Active Filters */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2">
           {selectedTopics.map((tag) => (

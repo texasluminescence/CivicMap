@@ -37,28 +37,15 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
       onClick={() => onClick(id)}
       className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-lg transition flex flex-col overflow-hidden"
     >
-      {/* Image */}
-      <div className="relative h-40 bg-gray-100">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            No Image
-          </div>
-        )}
-
-        {/* Bookmark */}
+      {/* Bookmark row */}
+      <div className="flex justify-end px-3 pt-3">
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleSave?.(id, !isBookmarked);
           }}
           aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-          className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full hover:bg-white transition"
+          className="bg-gray-100 p-1.5 rounded-full hover:bg-gray-200 transition"
         >
           <BookmarkIcon
             isBookmarked={isBookmarked}

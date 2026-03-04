@@ -60,13 +60,8 @@ export default function EventDetailPage() {
   }, [id]);
 
   // Async bookmark toggle
-  const handleBookmarkToggle = async (newState: boolean) => {
+  const handleBookmarkToggle = (newState: boolean) => {
     setIsBookmarked(newState);
-    console.log(
-      `Bookmark status locally toggled to: ${newState} for event ID: ${event?.id}`
-    );
-    // Optional: simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 0));
   };
 
   if (loading || !event)
@@ -97,7 +92,7 @@ export default function EventDetailPage() {
           imageUrl={event.image_url ?? undefined}
           isBookmarked={isBookmarked}
           eventId={event.id}
-          onBookmarkToggle={handleBookmarkToggle} // async function
+          onBookmarkToggle={handleBookmarkToggle}
         />
       </div>
 

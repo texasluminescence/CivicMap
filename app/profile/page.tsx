@@ -1,57 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import MiniEventCard from "@/components/MiniEventCard";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Tag } from "@/lib/types";
-import { getTagClasses } from "@/lib/tagColors";
 import BottomNav from "@/components/BottomNav";
-
-interface UserProfile {
-  id: string;
-  email: string;
-  fullName?: string;
-  avatarUrl?: string;
-}
-
-interface SavedEvent {
-  id: string;
-  title: string;
-  location: string;
-  event_date: string;
-  description: string;
-  tags: Tag[];
-  image_url?: string;
-}
-
-const mockSavedEvents: SavedEvent[] = [
-  {
-    id: "1",
-    title: "Community Cleanup Day",
-    location: "Riverfront Park",
-    event_date: "2026-02-10 10:00:00",
-    description:
-      "Join your neighbors for a hands-on community cleanup to protect local waterways and public spaces.",
-    image_url: "/events/cleanup.jpg",
-    tags: [
-      { id: "t1", label: "Action-Oriented", type: "Tone" },
-      { id: "t2", label: "Environment", type: "Topic" },
-    ],
-  },
-  {
-    id: "2",
-    title: "City Council Public Forum",
-    location: "Downtown City Hall",
-    event_date: "2026-02-12 18:30:00",
-    description:
-      "Meet city officials and discuss upcoming legislation and community priorities.",
-    image_url: "/events/council.jpg",
-    tags: [
-      { id: "t3", label: "Procedural", type: "Tone" },
-      { id: "t4", label: "Civic", type: "Topic" },
-    ],
-  },
-];
+import { UserIcon } from "@/components/Icons";
+import { createClient } from "@/lib/supabase/client";
 
 const preferenceCategories = [
   {
@@ -83,46 +36,35 @@ const preferenceCategories = [
 
 export default function ProfilePage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
 
-  const [user, setUser] = useState<UserProfile>({
-    id: "user123",
-    email: "user@example.com",
-    fullName: "John Doe",
-    avatarUrl: "/mock/avatar.png",
-  });
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setEmail(user.email ?? "");
+        setFullName(user.user_metadata?.full_name ?? "");
+      }
+    });
+  }, []);
 
-  const [savedEvents, setSavedEvents] = useState<SavedEvent[]>(mockSavedEvents);
-
-  const handleLogout = () => {
-    console.log("Logging out...");
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.push("/auth");
-  };
-
-  const handleToggleBookmark = (id: string, newState: boolean) => {
-    setSavedEvents((prev) =>
-      newState ? prev : prev.filter((event) => event.id !== id)
-    );
-    console.log(`Toggling bookmark for ${id}: ${newState}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
       <header className="bg-white shadow-md px-6 py-6 flex items-center gap-4 sticky top-0 z-10">
-        {user.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt={user.fullName}
-            className="w-16 h-16 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
-            {user.fullName ? user.fullName.charAt(0) : "U"}
-          </div>
-        )}
+        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+          <UserIcon className="w-8 h-8" />
+        </div>
 
         <div className="flex flex-col">
-          <span className="font-semibold text-lg">{user.fullName}</span>
-          <span className="text-gray-500 text-sm">{user.email}</span>
+          <span className="font-semibold text-lg">{fullName || "User"}</span>
+          <span className="text-gray-500 text-sm">{email}</span>
         </div>
 
         <button
@@ -165,32 +107,10 @@ export default function ProfilePage() {
         {/* Saved Events Section */}
         <section className="flex flex-col gap-6">
           <h2 className="text-xl font-bold text-gray-900">Saved Events</h2>
-
-          {savedEvents.length === 0 ? (
-            <p className="text-gray-500">You haven't saved any events yet.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {savedEvents.map((event) => (
-                <MiniEventCard
-                  key={event.id}
-                  id={event.id}
-                  title={event.title}
-                  location={event.location}
-                  eventDate={event.event_date}
-                  tags={event.tags}
-                  imageUrl={event.image_url}
-                  colorScheme="neutral"
-                  isBookmarked={true}
-                  onClick={() => router.push(`/events/${event.id}`)}
-                  onToggleSave={handleToggleBookmark}
-                />
-              ))}
-            </div>
-          )}
+          <p className="text-gray-500">You haven't saved any events yet.</p>
         </section>
       </main>
 
-      {/* Sticky Bottom Nav */}
       <BottomNav />
     </div>
   );

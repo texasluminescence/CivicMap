@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AuthScreen() {
   const router = useRouter();
+  const supabase = createClient();
 
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -13,33 +15,31 @@ export default function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock backend response
-  const mockAuth = async () => {
-    return new Promise<{ token: string }>((resolve, reject) => {
-      setTimeout(() => {
-        if (!email || !password || (mode === "signup" && !name)) {
-          reject(new Error("Please fill all fields"));
-        } else {
-          resolve({ token: "mock-civicmap-token" });
-        }
-      }, 500);
-    });
-  };
-
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await mockAuth();
-
-      // Save mock token
-      localStorage.setItem("civicmap_token", data.token);
-
-      // Navigate to feed (now /events page)
-      router.push("/events");
-    } catch (err: any) {
-      setError(err.message);
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+          },
+        });
+        if (error) throw error;
+        router.push("/events");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        router.push("/events");
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ export default function AuthScreen() {
         <div className="mt-6 text-center text-sm text-gray-600">
           {mode === "login" ? (
             <>
-              Don’t have an account?{" "}
+              Don't have an account?{" "}
               <button
                 className="text-blue-600 font-medium hover:underline"
                 onClick={() => setMode("signup")}

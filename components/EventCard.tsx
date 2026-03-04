@@ -15,7 +15,7 @@ interface EventCardProps {
   tags: Tag[];
   imageUrl?: string;
   isBookmarked: boolean;
-  onBookmarkToggle: (newState: boolean) => Promise<void>;
+  onBookmarkToggle: (newState: boolean) => void | Promise<void>;
 }
 
 const EventCard: FC<EventCardProps> = ({

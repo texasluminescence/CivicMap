@@ -1,8 +1,7 @@
-from dotenv import load_dotenv
 import os
-
-load_dotenv(".env.local")
 from pathlib import Path
+from dotenv import load_dotenv
+
 load_dotenv(Path(__file__).parent.parent / ".env.local")
 
 from supabase import create_client
@@ -11,12 +10,10 @@ from tqdm import tqdm
 
 # ========== CONFIG ==========
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_KEY") 
-print(f"Using Supabase URL: {SUPABASE_URL}")
-print(f"Using Supabase Key: {'***' + SUPABASE_KEY[-4:] if SUPABASE_KEY else None}")
+SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars")
+    raise ValueError("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_SERVICE_KEY env vars")
 
 # ========== INIT CLIENTS ==========
 print("Loading embedding model (first run may take 1–2 minutes)...")
@@ -60,13 +57,13 @@ for event in tqdm(events, desc="Generating embeddings"):
         success_count += 1
 
     except Exception as e:
-        print(f"❌ Failed for event_id={event_id}: {e}")
+        print(f"FAILED for event_id={event_id}: {e}")
         fail_count += 1
 
 print("\n========== SUMMARY ==========")
-print(f"✅ Success: {success_count}")
-print(f"❌ Failed: {fail_count}")
-print(f"📦 Total: {len(events)}")
+print(f"Success: {success_count}")
+print(f"Failed: {fail_count}")
+print(f"Total: {len(events)}")
 
 # ========== VERIFICATION ==========
 print("\nVerifying embeddings in database...")

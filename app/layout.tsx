@@ -1,5 +1,5 @@
 import "./globals.css";
-import ClientAuthWrapper from "../components/ClientAuthWrapper"; // import the client wrapper
+import ClientAuthWrapper from "@/components/ClientAuthWrapper";
 
 export const metadata = {
   title: "CivicMap",
