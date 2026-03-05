@@ -1,22 +1,66 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { UserIcon } from "@/components/Icons";
 import { createClient } from "@/lib/supabase/client";
 
-interface PreferenceSection {
-  title: string;
-  values: string[];
+interface PreferenceState {
+  topics: string[];
+  styles: string[];
+  sectors: string[];
+  schedule: string[];
+  format: string[];
 }
+
+const TOPIC_OPTIONS = [
+  "Housing",
+  "Environment",
+  "Education",
+  "Healthcare",
+  "Transportation",
+  "Public Safety",
+  "Economy",
+  "Social Justice",
+];
+
+const STYLE_OPTIONS = [
+  "Informational",
+  "Contentious",
+  "Collaborative",
+  "Action-Oriented",
+  "Procedural",
+  "Celebration",
+  "Advocacy",
+  "Empathetic",
+  "Urgent",
+  "Neutral",
+];
+
+const SECTOR_OPTIONS = ["Central", "North", "South", "East", "West", "Campus"];
+const SCHEDULE_OPTIONS = ["Weekdays", "Weekends", "Mornings", "Evenings"];
+const FORMAT_OPTIONS = ["In-Person", "Virtual"];
+
+const EMPTY_PREFERENCES: PreferenceState = {
+  topics: [],
+  styles: [],
+  sectors: [],
+  schedule: [],
+  format: [],
+};
 
 export default function ProfilePage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
-  const [preferences, setPreferences] = useState<PreferenceSection[]>([]);
-  const [loadingPrefs, setLoadingPrefs] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [preferences, setPreferences] = useState<PreferenceState>(EMPTY_PREFERENCES);
+  const [draftPreferences, setDraftPreferences] = useState<PreferenceState>(EMPTY_PREFERENCES);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -47,15 +91,17 @@ export default function ProfilePage() {
 
       const userPrefs = prefs ?? { tone: [], sector: [], schedule: [], format: [] };
 
-      setPreferences([
-        { title: "Topics", values: categoryNames },
-        { title: "Styles", values: userPrefs.tone ?? [] },
-        { title: "Locations", values: userPrefs.sector ?? [] },
-        { title: "Times", values: userPrefs.schedule ?? [] },
-        { title: "Formats", values: userPrefs.format ?? [] },
-      ]);
+      const loaded: PreferenceState = {
+        topics: categoryNames,
+        styles: userPrefs.tone ?? [],
+        sectors: userPrefs.sector ?? [],
+        schedule: userPrefs.schedule ?? [],
+        format: userPrefs.format ?? [],
+      };
 
-      setLoadingPrefs(false);
+      setPreferences(loaded);
+      setDraftPreferences(loaded);
+      setLoading(false);
     });
   }, []);
 
@@ -64,6 +110,100 @@ export default function ProfilePage() {
     await supabase.auth.signOut();
     router.push("/auth");
   };
+
+  const toggleSelection = (key: keyof PreferenceState, option: string) => {
+    setDraftPreferences((prev) => ({
+      ...prev,
+      [key]: prev[key].includes(option)
+        ? prev[key].filter((item) => item !== option)
+        : [...prev[key], option],
+    }));
+  };
+
+  const savePreferences = async () => {
+    setIsSaving(true);
+    setError(null);
+    setSaveMessage(null);
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Update category preferences
+      await supabase.from("user_category_prefs").delete().eq("user_id", user.id);
+
+      if (draftPreferences.topics.length > 0) {
+        // Look up category IDs by name
+        const { data: categories } = await supabase
+          .from("categories")
+          .select("id, name")
+          .in("name", draftPreferences.topics);
+
+        if (categories && categories.length > 0) {
+          const categoryRows = categories.map((cat) => ({
+            user_id: user.id,
+            category_id: cat.id,
+          }));
+          const { error: catError } = await supabase
+            .from("user_category_prefs")
+            .insert(categoryRows);
+          if (catError) throw catError;
+        }
+      }
+
+      // Update other preferences
+      await supabase.from("user_preferences").delete().eq("user_id", user.id);
+      const { error: prefError } = await supabase.from("user_preferences").upsert({
+        user_id: user.id,
+        tone: draftPreferences.styles,
+        sector: draftPreferences.sectors,
+        schedule: draftPreferences.schedule,
+        format: draftPreferences.format,
+      });
+      if (prefError) throw prefError;
+
+      setPreferences(draftPreferences);
+      setIsEditMode(false);
+      setSaveMessage("Preferences updated.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save preferences.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const selectedPreferences = isEditMode ? draftPreferences : preferences;
+
+  const renderMultiSelect = (
+    key: keyof PreferenceState,
+    options: string[],
+    title: string,
+  ) => (
+    <div className="border border-[#0A38AC]/20 rounded-xl p-4 flex flex-col gap-3 bg-white">
+      <h3 className="font-semibold text-gray-900">{title}</h3>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const selected = selectedPreferences[key].includes(option);
+          return (
+            <button
+              key={option}
+              type="button"
+              disabled={!isEditMode}
+              onClick={() => toggleSelection(key, option)}
+              className={`rounded-full border px-3 py-1.5 text-sm transition ${
+                selected
+                  ? "border-[#0A38AC] bg-[#0A38AC]/10 text-[#0A38AC]"
+                  : "border-gray-200 bg-white text-gray-700"
+              } ${!isEditMode ? "cursor-default opacity-90" : "hover:border-[#0A38AC]"}`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
@@ -95,42 +235,56 @@ export default function ProfilePage() {
                 Personalize what shows up in your feed.
               </p>
             </div>
-            <button
-              onClick={() => router.push("/onboarding?edit=true")}
-              className="inline-flex items-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-            >
-              Edit
-            </button>
+            {isEditMode ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftPreferences(preferences);
+                    setIsEditMode(false);
+                    setError(null);
+                  }}
+                  className="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={savePreferences}
+                  disabled={isSaving}
+                  className="inline-flex items-center rounded-md bg-[#72C685] px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-[#5fb472] disabled:opacity-60"
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftPreferences(preferences);
+                  setIsEditMode(true);
+                  setSaveMessage(null);
+                  setError(null);
+                }}
+                className="inline-flex items-center rounded-md bg-[#0A38AC] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#082d87]"
+              >
+                Edit
+              </button>
+            )}
           </div>
 
-          {loadingPrefs ? (
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {saveMessage && <p className="text-sm text-green-600">{saveMessage}</p>}
+
+          {loading ? (
             <p className="text-sm text-gray-400">Loading preferences...</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {preferences.map((section) => (
-                <div
-                  key={section.title}
-                  className="border border-gray-200 rounded-xl p-4 flex flex-col gap-2"
-                >
-                  <span className="font-semibold text-gray-900">
-                    {section.title}
-                  </span>
-                  {section.values.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {section.values.map((val) => (
-                        <span
-                          key={val}
-                          className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium"
-                        >
-                          {val}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-400">None selected</p>
-                  )}
-                </div>
-              ))}
+              {renderMultiSelect("topics", TOPIC_OPTIONS, "Topics")}
+              {renderMultiSelect("styles", STYLE_OPTIONS, "Styles")}
+              {renderMultiSelect("sectors", SECTOR_OPTIONS, "Locations")}
+              {renderMultiSelect("schedule", SCHEDULE_OPTIONS, "Times")}
+              {renderMultiSelect("format", FORMAT_OPTIONS, "Formats")}
             </div>
           )}
         </section>
@@ -138,7 +292,7 @@ export default function ProfilePage() {
         {/* Saved Events Section */}
         <section className="flex flex-col gap-6">
           <h2 className="text-xl font-bold text-gray-900">Saved Events</h2>
-          <p className="text-gray-500">You haven't saved any events yet.</p>
+          <p className="text-gray-500">You haven&apos;t saved any events yet.</p>
         </section>
       </main>
 
