@@ -1,23 +1,19 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import { BookmarkIcon, LocationIcon, TimeIcon } from "./Icons";
-import Image from "next/image";
-import { Tag } from "./MiniEventCard";
+import { Tag } from "@/lib/types";
+import { getTagClasses } from "@/lib/tagColors";
 
 interface EventCardProps {
+  eventId: string;
   title: string;
   location: string;
-  eventDate: string; 
+  eventDate: string;
   description: string;
   tags: Tag[];
-  imageUrl?: string;
-  // Controlled state from parent
-  isBookmarked: boolean; 
-  // New props for interaction logic
-  userId: string | null;
-  eventId: string;
-  onBookmarkToggle: (newState: boolean) => Promise<void>; 
+  isBookmarked: boolean;
+  onBookmarkToggle: (newState: boolean) => void | Promise<void>;
 }
 
 const EventCard: FC<EventCardProps> = ({
@@ -26,68 +22,77 @@ const EventCard: FC<EventCardProps> = ({
   eventDate,
   description,
   tags,
-  imageUrl,
   isBookmarked,
-  userId, // Retained for logging/potential future use
-  eventId,
   onBookmarkToggle,
 }) => {
-  
-  const handleBookmarkClick = () => {
-    onBookmarkToggle(!isBookmarked);
+  const [saving, setSaving] = useState(false);
+  const [registered, setRegistered] = useState(false);
+
+  const handleBookmarkClick = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await onBookmarkToggle(!isBookmarked);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRegister = () => {
+    setRegistered(true);
   };
 
   return (
-    <article className="flex flex-col lg:flex-row w-full max-w-5xl bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-      {/* Left Image */}
-      <div className="relative w-full lg:w-1/2 h-64 lg:h-auto bg-gray-100">
-        {imageUrl ? (
-          <Image src={imageUrl} alt={title} fill className="object-cover" />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            No Image
-          </div>
-        )}
-        <button
-          onClick={handleBookmarkClick}
-          // Button is now always enabled for immediate clicking
-          className={`absolute top-3 right-3 p-2 rounded-full transition bg-white/80 hover:bg-white`}
-          aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
-        >
-          <BookmarkIcon isBookmarked={isBookmarked} className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Right Details */}
-      <div className="flex flex-col p-6 gap-4 flex-1">
-        <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-
-        {/* Description is correctly placed below the title (order-2) */}
-        <p className="text-gray-700 leading-relaxed order-2">{description}</p>
-        
-        {/* Location (Order 3) */}
-        <div className="flex items-center gap-2 text-gray-700 font-medium order-3">
-          <LocationIcon className="w-5 h-5 text-blue-700" />
-          {location}
+    <article className="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
+      <div className="p-6 flex flex-col gap-4">
+        <div className="flex items-start justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+          <button
+            onClick={handleBookmarkClick}
+            disabled={saving}
+            aria-label="Toggle bookmark"
+            className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition disabled:opacity-50 shrink-0 ml-3"
+          >
+            <BookmarkIcon isBookmarked={isBookmarked} className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Time (Order 4) */}
-        <div className="flex items-center gap-2 text-gray-600 order-4">
-          <TimeIcon className="w-5 h-5 text-gray-500" />
-          {eventDate}
+        <p className="text-gray-700 leading-relaxed">{description}</p>
+
+        <div className="flex items-center gap-2 text-gray-700">
+          <LocationIcon className="w-5 h-5 text-blue-600" />
+          <span>{location}</span>
         </div>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mt-2 order-5">
-          {tags.map((tag, index) => (
+        <div className="flex items-center gap-2 text-gray-500">
+          <TimeIcon className="w-5 h-5" />
+          <span>{eventDate}</span>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {tags.map((tag) => (
             <span
-              key={index}
-              className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-lg"
+              key={tag.id}
+              className={`text-xs px-3 py-1 rounded-full font-medium ${getTagClasses(
+                tag.type
+              )}`}
             >
               {tag.label}
             </span>
           ))}
         </div>
+
+        <button
+          onClick={handleRegister}
+          disabled={registered}
+          className={`mt-2 w-full py-3 rounded-lg font-medium transition ${
+            registered
+              ? "bg-green-100 text-green-700 cursor-default"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
+        >
+          {registered ? "Registered" : "Register for Event"}
+        </button>
       </div>
     </article>
   );

@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-import MiniEventCard, { Tag } from "./MiniEventCard";
-import { CompassIcon, UserIcon } from "./Icons";
+import MiniEventCard from "@/components/MiniEventCard";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import SearchAndFilterBar from "./SearchAndFilterBar";
+import BottomNav from "@/components/BottomNav";
+import { Tag } from "@/lib/types";
 
 interface EventData {
   id: string;
@@ -13,127 +14,195 @@ interface EventData {
   location: string;
   event_date: string | null;
   description: string;
-  image_url?: string;
-  category: string | null;
+  categories: string | null;
   tone: string | null;
-  tags?: Tag[];
+  tags: Tag[];
+}
+
+function buildTags(categories: string | null, tone: string | null): Tag[] {
+  const tags: Tag[] = [];
+
+  if (categories) {
+    tags.push({ id: `cat-${categories}`, label: categories, type: "Topic" });
+  }
+
+  if (tone) {
+    tone.split(",").forEach((t, i) => {
+      const trimmed = t.trim();
+      if (trimmed) {
+        tags.push({ id: `tone-${i}-${trimmed}`, label: trimmed, type: "Tone" });
+      }
+    });
+  }
+
+  return tags;
 }
 
 const formatEventDate = (dateString: string | null): string => {
-  if (!dateString) return "Date/Time N/A";
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      throw new Error("Invalid date format");
-    }
-    return date.toLocaleString();
-  } catch (e) {
-    console.error("Failed to parse date:", dateString, e);
-    return "Invalid Date";
-  }
+  if (!dateString) return "TBD";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "TBD";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 };
 
-const FeedScreen: React.FC = () => {
-  const [events, setEvents] = useState<EventData[]>([]);
+export default function FeedScreen() {
   const router = useRouter();
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "forYou">("all");
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedTones, setSelectedTones] = useState<string[]>([]);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(`*, category, tone, event_date`)
-        .order("event_date", { ascending: false })
-        .limit(20);
-
-      if (error) {
-        console.error("Supabase error:", error.message);
-      } else {
-        const mappedEvents: EventData[] = (data || []).map((event: any) => {
-
-          const category = event.category || "";
-
-          const toneString = event.tone || "";
-          const toneLabels = toneString.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
-
-          const tags: Tag[] = [];
-
-          if (category) {
-            tags.push({
-              id: 'category',
-              label: category,
-              type: 'Topic'
-            });
-          }
-
-          if (toneLabels.length > 0) {
-            tags.push({
-              id: 'tone',
-              label: toneLabels[0],
-              type: 'Custom'
-            });
-          }
-
-          if (tags.length === 0) {
-            tags.push({
-              id: 'default',
-              label: "Community",
-              type: 'Topic'
-            });
-          }
-
-          return {
-            ...event,
-            tags: tags,
-          };
-        });
-
-        setEvents(mappedEvents);
-      }
-    };
-    fetchEvents();
+    const supabase = createClient();
+    supabase
+      .from("events")
+      .select("id, title, description, location, event_date, categories, tone")
+      .order("event_date", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Failed to fetch events:", error.message);
+        } else {
+          const mapped: EventData[] = (data ?? []).map((e) => ({
+            ...e,
+            tags: buildTags(e.categories, e.tone),
+          }));
+          setEvents(mapped);
+        }
+        setLoading(false);
+      });
   }, []);
+
+  const toggleValue = (value: string, setFn: React.Dispatch<React.SetStateAction<string[]>>) => {
+    setFn((prev) =>
+      prev.includes(value)
+        ? prev.filter((v) => v !== value)
+        : [...prev, value]
+    );
+  };
+
+  const handleToggleBookmark = (eventId: string, newState: boolean) => {
+    setBookmarkedIds((prev) =>
+      newState ? [...prev, eventId] : prev.filter((id) => id !== eventId)
+    );
+  };
+
+  const handleCardClick = (eventId: string) => {
+    const event = events.find((e) => e.id === eventId);
+    if (!event) return;
+    localStorage.setItem("selectedEvent", JSON.stringify(event));
+    router.push(`/events/${eventId}`);
+  };
+
+  const topicTags = React.useMemo(() => {
+    return Array.from(
+      new Set(
+        events.flatMap((e) =>
+          e.tags.filter((t) => t.type === "Topic").map((t) => t.label)
+        )
+      )
+    );
+  }, [events]);
+
+  const toneTags = React.useMemo(() => {
+    return Array.from(
+      new Set(
+        events.flatMap((e) =>
+          e.tags.filter((t) => t.type === "Tone").map((t) => t.label)
+        )
+      )
+    );
+  }, [events]);
+
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const eventTopics = event.tags
+      .filter((t) => t.type === "Topic")
+      .map((t) => t.label);
+
+    const eventTones = event.tags
+      .filter((t) => t.type === "Tone")
+      .map((t) => t.label);
+
+    const matchesTopics =
+      selectedTopics.length === 0 ||
+      selectedTopics.every((t) => eventTopics.includes(t));
+
+    const matchesTones =
+      selectedTones.length === 0 ||
+      selectedTones.every((t) => eventTones.includes(t));
+
+    return matchesSearch && matchesTopics && matchesTones;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white shadow-md px-4 py-3 flex justify-between items-center sticky top-0 z-10">
-        <img
-          src="/1.png"
-          alt="CivicMap Logo - Get Involved"
-          className="h-12 w-auto mr-4"
+      {/* Header */}
+      <header className="bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-center items-center sticky top-0 z-10 gap-2">
+        <div className="flex items-center">
+          <img
+            src="/1.png"
+            alt="CivicMap Logo"
+            className="h-12 w-auto mr-4"
+          />
+        </div>
+
+        <SearchAndFilterBar
+          searchQuery={searchQuery}
+          activeTab={activeTab}
+          topicTags={topicTags}
+          toneTags={toneTags}
+          selectedTopics={selectedTopics}
+          selectedTones={selectedTones}
+          onSearchChange={setSearchQuery}
+          onTabChange={setActiveTab}
+          onTopicToggle={(tag) => toggleValue(tag, setSelectedTopics)}
+          onToneToggle={(tag) => toggleValue(tag, setSelectedTones)}
         />
-
-        <SearchAndFilterBar />
-
       </header>
 
-      <main className="flex-grow p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 pb-24 gap-6">
-        {events.map((event) => (
-          <MiniEventCard
-            key={event.id}
-            id={event.id}
-            title={event.title}
-            location={event.location}
-            eventDate={formatEventDate(event.event_date)}
-            tags={event.tags || [{ label: "Community", type: "Topic" }]}
-            imageUrl={event.image_url}
-            isBookmarked={false}
-            onClick={(id) => router.push(`/events/${id}`)}
-          />
-        ))}
+      {/* Main Content Grid */}
+      <main className="p-6">
+        {loading ? (
+          <p className="text-center text-gray-500 py-20">Loading events...</p>
+        ) : filteredEvents.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredEvents.map((event) => (
+              <MiniEventCard
+                key={event.id}
+                id={event.id}
+                title={event.title}
+                location={event.location ?? "Austin, TX"}
+                eventDate={formatEventDate(event.event_date)}
+                tags={event.tags}
+                isBookmarked={bookmarkedIds.includes(event.id)}
+                onClick={handleCardClick}
+                onToggleSave={handleToggleBookmark}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <h2 className="text-xl font-semibold text-gray-800">No events found</h2>
+            <p className="text-gray-500 mt-2">
+              Try adjusting your search or filters to find what you're looking for.
+            </p>
+          </div>
+        )}
       </main>
 
-      <nav className="flex w-full justify-around bg-white border-t border-gray-200 py-4 shadow-sm fixed bottom-0">
-        <button className="flex flex-col items-center text-blue-700">
-          <CompassIcon />
-          <span className="text-sm">Explore</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-500">
-          <UserIcon />
-          <span className="text-sm">Profile</span>
-        </button>
-      </nav>
+      <BottomNav />
     </div>
   );
-};
-
-export default FeedScreen;
+}
