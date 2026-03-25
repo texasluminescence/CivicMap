@@ -1,27 +1,50 @@
-name: CI/CD Pipeline
+name: PR Checks
 
 on:
-  push:
+  pull_request:
     branches: [ "main" ]
 
 jobs:
-  build:
+
+  frontend-lint:
+    name: Frontend Lint
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies
-        run: npm install
+      - run: npm install
+      - run: npm run lint
 
-      - name: Run tests
-        run: npm test -- --watchAll=false
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
 
-      - name: Build project
-        run: npm run build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - run: npm install
+      - run: npm run build
+
+  python-lint:
+    name: Python Lint (flake8)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
+
+      - run: pip install flake8
+      - run: flake8 .
