@@ -4,6 +4,7 @@ import React, { FC, useState } from "react";
 import { BookmarkIcon, LocationIcon, TimeIcon } from "./Icons";
 import { Tag } from "@/lib/types";
 import { getTagClasses } from "@/lib/tagColors";
+import { createClient } from "@/lib/supabase/client";
 
 interface EventCardProps {
   eventId: string;
@@ -17,6 +18,7 @@ interface EventCardProps {
 }
 
 const EventCard: FC<EventCardProps> = ({
+  eventId,
   title,
   location,
   eventDate,
@@ -33,13 +35,31 @@ const EventCard: FC<EventCardProps> = ({
     setSaving(true);
     try {
       await onBookmarkToggle(!isBookmarked);
+      const supabase = createClient();                          
+      const { data: { user } } = await supabase.auth.getUser(); 
+      if (!user) return;                                        
+      await supabase.from("user_interactions").insert({
+        user_id: user.id,
+        event_id: eventId,
+        interaction_type: "save",
+        weight: 1.00,
+      });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setRegistered(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("user_interactions").insert({
+      user_id: user.id,
+      event_id: eventId,
+      interaction_type: "register",
+      weight: 1.50,
+    });
   };
 
   return (
