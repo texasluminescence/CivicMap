@@ -1,9 +1,10 @@
 "use client";
 
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { BookmarkIcon, LocationIcon, TimeIcon } from "./Icons";
 import { Tag } from "@/lib/types";
 import { getTagClasses } from "@/lib/tagColors";
+import { createClient } from "@/lib/supabase/client";
 
 interface EventCardProps {
   eventId: string;
@@ -13,33 +14,100 @@ interface EventCardProps {
   description: string;
   tags: Tag[];
   isBookmarked: boolean;
+  initialRegistered?: boolean;
   onBookmarkToggle: (newState: boolean) => void | Promise<void>;
 }
 
 const EventCard: FC<EventCardProps> = ({
+  eventId,
   title,
   location,
   eventDate,
   description,
   tags,
   isBookmarked,
+  initialRegistered = false,
   onBookmarkToggle,
 }) => {
+  const supabase = useMemo(() => createClient(), []);
   const [saving, setSaving] = useState(false);
-  const [registered, setRegistered] = useState(false);
+  const [registered, setRegistered] = useState(initialRegistered);
+
+  useEffect(() => {
+    setRegistered(initialRegistered);
+  }, [initialRegistered]);
 
   const handleBookmarkClick = async () => {
     if (saving) return;
     setSaving(true);
+    const nextState = !isBookmarked;
     try {
-      await onBookmarkToggle(!isBookmarked);
+      await onBookmarkToggle(nextState);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        if (nextState) {
+          await supabase.from("saved_events").upsert(
+            { user_id: user.id, event_id: eventId },
+            { onConflict: "user_id, event_id" }
+          );
+        } else {
+          await supabase
+            .from("saved_events")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("event_id", eventId);
+        }
+
+        await supabase.from("user_interactions").insert({
+          user_id: user.id,
+          event_id: eventId,
+          interaction_type: nextState ? "save" : "unsave",
+          weight: nextState ? 1.0 : 0.0,
+        });
+      }
+    } catch (err) {
+      console.error("Bookmark sync failed:", err);
+      onBookmarkToggle(isBookmarked);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleRegister = () => {
-    setRegistered(true);
+  const handleRegisterToggle = async () => {
+    if (saving) return;
+    setSaving(true);
+    const nextState = !registered;
+    setRegistered(nextState);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        if (nextState) {
+          await supabase.from("registered_events").upsert(
+            { user_id: user.id, event_id: eventId },
+            { onConflict: "user_id, event_id" }
+          );
+        } else {
+          await supabase
+            .from("registered_events")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("event_id", eventId);
+        }
+
+        await supabase.from("user_interactions").insert({
+          user_id: user.id,
+          event_id: eventId,
+          interaction_type: nextState ? "register" : "unregister",
+          weight: nextState ? 1.5 : 0.0,
+        });
+      }
+    } catch (err) {
+      console.error("Registration sync failed:", err);
+      setRegistered(!nextState);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -70,28 +138,41 @@ const EventCard: FC<EventCardProps> = ({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <span
-              key={tag.id}
-              className={`text-xs px-3 py-1 rounded-full font-medium ${getTagClasses(
-                tag.type
-              )}`}
-            >
-              {tag.label}
-            </span>
-          ))}
+          {tags
+            .flatMap((tag) =>
+              tag.label.split(",").map((part, i) => ({
+                ...tag,
+                id: `${tag.id}-${i}`,
+                label: part.trim(),
+              }))
+            )
+            .filter((tag) => tag.label)
+            .map((tag) => (
+              <span
+                key={tag.id}
+                className={`text-xs px-3 py-1 rounded-full font-medium ${getTagClasses(
+                  tag.type
+                )}`}
+              >
+                {tag.label}
+              </span>
+            ))}
         </div>
 
         <button
-          onClick={handleRegister}
-          disabled={registered}
+          onClick={handleRegisterToggle}
+          disabled={saving}
           className={`mt-2 w-full py-3 rounded-lg font-medium transition ${
             registered
-              ? "bg-green-100 text-green-700 cursor-default"
+              ? "bg-green-100 text-green-700 hover:bg-red-50 hover:text-red-600"
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
         >
-          {registered ? "Registered" : "Register for Event"}
+          {saving
+            ? "Processing..."
+            : registered
+              ? "Registered ✕"
+              : "Register for Event"}
         </button>
       </div>
     </article>

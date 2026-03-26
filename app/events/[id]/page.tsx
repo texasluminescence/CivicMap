@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import EventCard from "@/components/EventCard";
 import { Tag } from "@/lib/types";
@@ -22,7 +22,12 @@ interface DetailedEvent {
 function buildTags(categories: string | null, tone: string | null): Tag[] {
   const tags: Tag[] = [];
   if (categories) {
-    tags.push({ id: `cat-${categories}`, label: categories, type: "Topic" });
+    categories.split(",").forEach((c, i) => {
+      const trimmed = c.trim();
+      if (trimmed) {
+        tags.push({ id: `cat-${i}-${trimmed}`, label: trimmed, type: "Topic" });
+      }
+    });
   }
   if (tone) {
     tone.split(",").forEach((t, i) => {
@@ -51,9 +56,11 @@ const formatEventDate = (dateString: string | null): string => {
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
 
   const [event, setEvent] = useState<DetailedEvent | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,46 +69,58 @@ export default function EventDetailPage() {
       return;
     }
 
-    // Try localStorage first (set when clicking from feed)
-    const storedEvent = localStorage.getItem("selectedEvent");
-    if (storedEvent) {
-      const parsed = JSON.parse(storedEvent);
-      if (String(parsed.id) === String(id)) {
-        setEvent({
-          ...parsed,
-          tags: parsed.tags ?? buildTags(parsed.categories, parsed.tone),
-        });
-        setLoading(false);
-        return;
-      }
-    }
+    const fetchEvent = async () => {
+      try {
+        const [{ data: { user } }, { data, error }] = await Promise.all([
+          supabase.auth.getUser(),
+          supabase
+            .from("events")
+            .select("id, title, description, location, event_date, categories, tone")
+            .eq("id", id)
+            .single(),
+        ]);
 
-    // Fallback: fetch from Supabase
-    const supabase = createClient();
-    supabase
-      .from("events")
-      .select("id, title, description, location, event_date, categories, tone")
-      .eq("id", id)
-      .single()
-      .then(({ data, error }) => {
         if (error || !data) {
           console.error("Failed to fetch event:", error?.message);
-        } else {
-          setEvent({
-            ...data,
-            tags: buildTags(data.categories, data.tone),
-          });
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-      });
-  }, [id]);
 
-  const handleBookmarkToggle = (newState: boolean) => {
-    setIsBookmarked(newState);
-  };
+        setEvent({
+          ...data,
+          tags: buildTags(data.categories, data.tone),
+        });
+
+        if (user) {
+          const [{ data: saved }, { data: registered }] = await Promise.all([
+            supabase
+              .from("saved_events")
+              .select("id")
+              .eq("user_id", user.id)
+              .eq("event_id", id)
+              .maybeSingle(),
+            supabase
+              .from("registered_events")
+              .select("id")
+              .eq("user_id", user.id)
+              .eq("event_id", id)
+              .maybeSingle(),
+          ]);
+          setIsBookmarked(!!saved);
+          setIsRegistered(!!registered);
+        }
+      } catch (err) {
+        console.error("Error loading event:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [id, supabase]);
 
   if (loading)
-    return <p className="p-10 text-gray-500">Loading event details...</p>;
+    return <p className="p-10 text-gray-500 text-center">Loading event details...</p>;
 
   if (!event)
     return <p className="p-10 text-gray-500">Event not found.</p>;
@@ -118,14 +137,15 @@ export default function EventDetailPage() {
 
       <div className="mt-20 w-full flex justify-center p-4">
         <EventCard
+          eventId={event.id}
           title={event.title}
           location={event.location}
           eventDate={formatEventDate(event.event_date)}
           description={event.description}
           tags={event.tags}
           isBookmarked={isBookmarked}
-          eventId={event.id}
-          onBookmarkToggle={handleBookmarkToggle}
+          initialRegistered={isRegistered}
+          onBookmarkToggle={(newState: boolean) => setIsBookmarked(newState)}
         />
       </div>
 
