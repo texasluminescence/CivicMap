@@ -1,12 +1,9 @@
-import React, { FC, useState } from "react";
-import { BookmarkIcon, LocationIcon, TimeIcon } from "./Icons"; // Import Icons
+"use client";
 
-// The Tag interface is defined here and exported for use in other components.
-export interface Tag {
-  id?: string;
-  label: string;
-  type?: 'Topic' | 'Tone' | 'Custom'; 
-}
+import React, { FC } from "react";
+import { BookmarkIcon, LocationIcon, TimeIcon } from "./Icons";
+import { Tag } from "@/lib/types";
+import { getTagClasses } from "@/lib/tagColors";
 
 interface MiniEventCardProps {
   id: string;
@@ -15,56 +12,40 @@ interface MiniEventCardProps {
   eventDate: string;
   tags: Tag[];
   imageUrl?: string;
-  onClick: (id: string) => void;
   colorScheme?: "blue" | "neutral";
-  // NEW: Controlled state for bookmark status
-  isBookmarked: boolean; 
-  // NEW: Handler for bookmark click (uses local state for now, or could be a prop handler)
-  // Since MiniEventCard is in a list, we'll keep the state local for demo simplicity
+  isBookmarked: boolean;
+  onClick: (id: string) => void;
+  onToggleSave?: (id: string, newState: boolean) => void;
 }
 
-const MiniEventCard: FC<MiniEventCardProps> = ({ 
-    id, 
-    title, 
-    location, 
-    eventDate, 
-    tags, 
-    imageUrl, 
-    colorScheme = "blue",
-    isBookmarked: initialBookmarked, // Rename prop to use internal state
-    onClick 
+const MiniEventCard: FC<MiniEventCardProps> = ({
+  id,
+  title,
+  location,
+  eventDate,
+  tags,
+  imageUrl,
+  colorScheme = "blue",
+  isBookmarked,
+  onClick,
+  onToggleSave,
 }) => {
-  // Use local state for bookmarking in the feed for quick interaction
-  const [isBookmarked, setIsBookmarked] = useState(initialBookmarked);
-
-  const handleBookmarkClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevents card click event from firing
-    // In a real app, this would trigger an API call
-    setIsBookmarked((prev) => !prev);
-  };
-
   const isNeutral = colorScheme === "neutral";
 
   return (
-    <article 
-        onClick={() => onClick(id)}
-        className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full"
+    <article
+      onClick={() => onClick(id)}
+      className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-lg transition flex flex-col overflow-hidden"
     >
-      <div className="relative h-40 bg-gray-100">
-        {imageUrl ? (
-          // In a real Next.js app, this should use the built-in Image component
-          <img src={imageUrl} alt={title} className="object-cover w-full h-full" />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            No Image
-          </div>
-        )}
-        
-        {/* NEW: Bookmark Button */}
+      {/* Bookmark row */}
+      <div className="flex justify-end px-3 pt-3">
         <button
-          onClick={handleBookmarkClick}
-          className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full hover:bg-white transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSave?.(id, !isBookmarked);
+          }}
           aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+          className="bg-gray-100 p-1.5 rounded-full hover:bg-gray-200 transition"
         >
           <BookmarkIcon
             isBookmarked={isBookmarked}
@@ -72,25 +53,32 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
             className="w-5 h-5"
           />
         </button>
-
       </div>
+
+      {/* Content */}
       <div className="p-4 flex flex-col flex-grow">
-        <h2 className="text-xl font-semibold text-gray-900 mb-1 line-clamp-2">{title}</h2>
-        <p className="text-sm text-gray-500 flex items-center gap-1 mb-3">
-            <LocationIcon className={`w-4 h-4 ${isNeutral ? "text-gray-700" : "text-blue-600"}`} />
-            <span className="truncate">{location}</span>
-        </p>
-        <p className="text-xs text-gray-400 flex items-center gap-1 mb-3">
-            <TimeIcon className="w-4 h-4 text-gray-500" />
-            <span>{eventDate}</span>
-        </p>
-        <div className="flex flex-wrap gap-2 mt-auto">
-          {tags.slice(0, 3).map((tag, index) => (
+        <h2 className="text-lg font-semibold text-gray-900 line-clamp-2">
+          {title}
+        </h2>
+
+        <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+          <LocationIcon className={`w-4 h-4 ${isNeutral ? "text-gray-700" : "text-blue-600"}`} />
+          <span className="truncate">{location}</span>
+        </div>
+
+        <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+          <TimeIcon className="w-4 h-4" />
+          <span>{eventDate}</span>
+        </div>
+
+        {/* Color-coded tags */}
+        <div className="flex flex-wrap gap-1 mt-2">
+          {tags.slice(0, 3).map((tag) => (
             <span
-              key={index}
-              className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                isNeutral ? "bg-gray-200 text-gray-900" : "bg-blue-100 text-blue-800"
-              }`}
+              key={tag.id}
+              className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getTagClasses(
+                tag.type
+              )}`}
             >
               {tag.label}
             </span>

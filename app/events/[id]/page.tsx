@@ -1,158 +1,135 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation"; // Import useRouter
-import { supabase } from "../../../lib/supabaseClient";
-import EventCard from "../../../components/EventCard";
-import { Tag } from "../../../components/MiniEventCard";
-import { ArrowLeftIcon, CompassIcon, UserIcon } from "../../../components/Icons";
-import SearchAndFilterBar from "../../../components/SearchAndFilterBar";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import EventCard from "@/components/EventCard";
+import { Tag } from "@/lib/types";
+import { ArrowLeftIcon } from "@/components/Icons";
+import { createClient } from "@/lib/supabase/client";
+import BottomNav from "@/components/BottomNav";
 
 interface DetailedEvent {
   id: string;
   title: string;
   location: string;
-  event_date: string | null; 
+  event_date: string | null;
   description: string;
-  image_url: string | null;
-  tone: string | null; // Actual column name from DB (assuming string)
-  tags: Tag[]; // For component usage
+  categories: string | null;
+  tone: string | null;
+  tags: Tag[];
+}
+
+function buildTags(categories: string | null, tone: string | null): Tag[] {
+  const tags: Tag[] = [];
+  if (categories) {
+    tags.push({ id: `cat-${categories}`, label: categories, type: "Topic" });
+  }
+  if (tone) {
+    tone.split(",").forEach((t, i) => {
+      const trimmed = t.trim();
+      if (trimmed) {
+        tags.push({ id: `tone-${i}-${trimmed}`, label: trimmed, type: "Tone" });
+      }
+    });
+  }
+  return tags;
 }
 
 const formatEventDate = (dateString: string | null): string => {
-  if (!dateString) return "Date/Time N/A";
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      throw new Error("Invalid date format");
-    }
-    // Using simple formatting that works for dates/times
-    return date.toLocaleString();
-  } catch (e) {
-    console.error("Failed to parse date:", dateString, e);
-    return "Invalid Date";
-  }
+  if (!dateString) return "TBD";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "TBD";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 };
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter(); // Initialize useRouter hook
+  const router = useRouter();
+
   const [event, setEvent] = useState<DetailedEvent | null>(null);
-  const [isBookmarked, setIsBookmarked] = useState(false); 
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // 1. Fetch Event Details (No user fetch needed)
   useEffect(() => {
     if (!id) {
-        setLoading(false);
-        return;
+      setLoading(false);
+      return;
     }
-    
-    const fetchData = async () => {
-      setLoading(true);
 
-      const { data: eventData, error: eventError } = await supabase
-        .from("events")
-        .select(`*, tone, event_date`) 
-        .eq("id", id)
-        .single();
-
-      if (eventError) {
-        console.error("Error fetching event:", eventError.message);
+    // Try localStorage first (set when clicking from feed)
+    const storedEvent = localStorage.getItem("selectedEvent");
+    if (storedEvent) {
+      const parsed = JSON.parse(storedEvent);
+      if (String(parsed.id) === String(id)) {
+        setEvent({
+          ...parsed,
+          tags: parsed.tags ?? buildTags(parsed.categories, parsed.tone),
+        });
         setLoading(false);
         return;
       }
-      
-      const toneString = eventData.tone || "";
-      const labels = typeof toneString === 'string' && toneString.trim() !== ''
-          ? toneString.split(',').map(s => s.trim()).filter(s => s.length > 0)
-          : [];
+    }
 
-      const tags: Tag[] = labels.map((label: string, index: number) => ({
-        id: `tag-${index}`, // Placeholder ID
-        label: label,
-        type: 'Custom', // Default type
-      }));
-
-      setEvent({
-        ...eventData,
-        tags,
-      } as DetailedEvent);
-
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [id]); 
-
-  // 2. Bookmark Toggle Handler (Local Only)
-  const handleBookmarkToggle = useCallback(async (newState: boolean) => {
-    if (!id) return;
-    
-    // Toggle the local state and log the action
-    setIsBookmarked(newState); 
-    console.log(`Bookmark status locally toggled to: ${newState} for event ID: ${id}. This change is NOT saved to the database.`);
-
-
+    // Fallback: fetch from Supabase
+    const supabase = createClient();
+    supabase
+      .from("events")
+      .select("id, title, description, location, event_date, categories, tone")
+      .eq("id", id)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          console.error("Failed to fetch event:", error?.message);
+        } else {
+          setEvent({
+            ...data,
+            tags: buildTags(data.categories, data.tone),
+          });
+        }
+        setLoading(false);
+      });
   }, [id]);
 
+  const handleBookmarkToggle = (newState: boolean) => {
+    setIsBookmarked(newState);
+  };
 
-  if (loading || !event) return <p className="p-10 text-gray-500">Loading event details...</p>;
+  if (loading)
+    return <p className="p-10 text-gray-500">Loading event details...</p>;
 
-  const formattedEventDate = formatEventDate(event.event_date);
+  if (!event)
+    return <p className="p-10 text-gray-500">Event not found.</p>;
 
   return (
-    // Adjust the main container for positioning the button
     <div className="min-h-screen bg-gray-50 flex flex-col">
-            
-            {/* Top Navigation */}
-            <header className="bg-white shadow-md px-4 py-3 flex justify-center items-center sticky top-0 z-10">
-                <img
-                    src="/1.png" 
-                    alt="CivicMap Logo - Get Involved"
-                    className="h-12 w-auto mr-4"     
-                />
-                <SearchAndFilterBar />
-            </header>  
-      {/* BACK BUTTON - top-left */}
-      <button 
-        onClick={() => router.back()} // Use router.back() for navigation
-        className="absolute top-20 left-6 p-2 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors z-20"
-        aria-label="Go back to previous page"
+      <button
+        onClick={() => router.back()}
+        className="absolute top-10 left-6 p-2 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors z-20"
+        aria-label="Go back"
       >
         <ArrowLeftIcon className="w-6 h-6 text-gray-800" />
       </button>
 
-      {/* Center the EventCard and give it top margin to avoid collision with the back button */}
-      <div className="mt-20 w-full flex justify-center">
+      <div className="mt-20 w-full flex justify-center p-4">
         <EventCard
           title={event.title}
           location={event.location}
-          eventDate={formattedEventDate}
+          eventDate={formatEventDate(event.event_date)}
           description={event.description}
           tags={event.tags}
-          imageUrl={event.image_url ?? undefined}
-          // Controlled props
           isBookmarked={isBookmarked}
-          userId={null} 
           eventId={event.id}
           onBookmarkToggle={handleBookmarkToggle}
         />
       </div>
 
-      {/* BOTTOM NAVIGATION BAR */}
-            <nav className="flex w-full justify-around bg-white border-t border-gray-200 py-4 shadow-xl fixed bottom-0 z-30">
-                <button 
-                    onClick={() => router.back()}
-                    className="flex flex-col items-center text-blue-700 transition duration-150 transform hover:scale-105" aria-label="Explore Tab">
-                    <CompassIcon />
-                    <span className="text-sm font-medium">Explore</span>
-                </button>
-                <button className="flex flex-col items-center text-gray-500 transition duration-150 transform hover:scale-105" aria-label="Profile Tab">
-                    <UserIcon />
-                    <span className="text-sm font-medium">Profile</span>
-                </button>
-            </nav>
-        </div> 
+      <BottomNav />
+    </div>
   );
 }

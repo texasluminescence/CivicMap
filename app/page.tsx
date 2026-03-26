@@ -1,5 +1,5 @@
-import FeedScreen from "../components/FeedScreen";
+import AuthScreen from "@/components/AuthScreen";
 
-export default function Home() {
-  return <FeedScreen />;
+export default function HomePage() {
+  return <AuthScreen />;
 }
