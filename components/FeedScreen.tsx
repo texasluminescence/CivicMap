@@ -206,7 +206,7 @@ export default function FeedScreen() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <h2 className="text-xl font-semibold text-gray-800">No events found</h2>
             <p className="text-gray-500 mt-2">
-              Try adjusting your search or filters to find what you're looking for.
+              Try adjusting your search or filters to find what you&apos;re looking for.
             </p>
           </div>
         )}

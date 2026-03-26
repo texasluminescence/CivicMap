@@ -24,7 +24,6 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
   location,
   eventDate,
   tags,
-  imageUrl,
   colorScheme = "blue",
   isBookmarked,
   onClick,
