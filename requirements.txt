@@ -3,3 +3,4 @@ python-dotenv
 supabase
 postgrest
 pandas
+scikit-surprise

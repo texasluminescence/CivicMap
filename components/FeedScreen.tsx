@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import MiniEventCard from "@/components/MiniEventCard";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,12 @@ function buildTags(categories: string | null, tone: string | null): Tag[] {
   const tags: Tag[] = [];
 
   if (categories) {
-    tags.push({ id: `cat-${categories}`, label: categories, type: "Topic" });
+    categories.split(",").forEach((c, i) => {
+      const trimmed = c.trim();
+      if (trimmed) {
+        tags.push({ id: `cat-${i}-${trimmed}`, label: trimmed, type: "Topic" });
+      }
+    });
   }
 
   if (tone) {
@@ -53,6 +58,7 @@ const formatEventDate = (dateString: string | null): string => {
 
 export default function FeedScreen() {
   const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
   const [events, setEvents] = useState<EventData[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
@@ -62,7 +68,6 @@ export default function FeedScreen() {
   const [selectedTones, setSelectedTones] = useState<string[]>([]);
 
   useEffect(() => {
-    const supabase = createClient();
     supabase
       .from("events")
       .select("id, title, description, location, event_date, categories, tone")
@@ -79,7 +84,22 @@ export default function FeedScreen() {
         }
         setLoading(false);
       });
-  }, []);
+  }, [supabase]);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("saved_events")
+        .select("event_id")
+        .eq("user_id", user.id)
+        .then(({ data }) => {
+          if (data) {
+            setBookmarkedIds(data.map((d) => d.event_id));
+          }
+        });
+    });
+  }, [supabase]);
 
   const toggleValue = (value: string, setFn: React.Dispatch<React.SetStateAction<string[]>>) => {
     setFn((prev) =>
@@ -148,15 +168,12 @@ export default function FeedScreen() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
       <header className="bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-center items-center sticky top-0 z-10 gap-2">
-        <div className="flex items-center">
-          <img
-            src="/1.png"
-            alt="CivicMap Logo"
-            className="h-12 w-auto mr-4"
-          />
-        </div>
+        <img
+          src="/1.png"
+          alt="CivicMap Logo"
+          className="h-12 w-auto mr-4"
+        />
 
         <SearchAndFilterBar
           searchQuery={searchQuery}
@@ -172,7 +189,6 @@ export default function FeedScreen() {
         />
       </header>
 
-      {/* Main Content Grid */}
       <main className="p-6">
         {loading ? (
           <p className="text-center text-gray-500 py-20">Loading events...</p>
@@ -196,7 +212,7 @@ export default function FeedScreen() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <h2 className="text-xl font-semibold text-gray-800">No events found</h2>
             <p className="text-gray-500 mt-2">
-              Try adjusting your search or filters to find what you're looking for.
+              Try adjusting your search or filters to find what you&apos;re looking for.
             </p>
           </div>
         )}
