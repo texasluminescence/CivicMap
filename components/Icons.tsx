@@ -1,4 +1,6 @@
 import React, { FC } from "react";
+import { Star } from "lucide-react";
+
 
 export interface IconProps {
   className?: string;
@@ -124,4 +126,18 @@ export const UserIcon: FC<IconProps> = ({ className = "w-7 h-7" }) => (
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
+);
+
+interface StarIconProps {
+  isStarred?: boolean;
+  className?: string;
+}
+
+export const StarIcon: FC<StarIconProps> = ({ isStarred = false, className }) => (
+  <Star
+    className={className}
+    fill={isStarred ? "#f5de0b" : "none"}
+    stroke={isStarred ? "#f5de0b" : "currentColor"}
+    strokeWidth={2}
+  />
 );

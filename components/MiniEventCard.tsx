@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC, useMemo, useState } from "react";
-import { BookmarkIcon, LocationIcon, TimeIcon } from "./Icons";
+import { BookmarkIcon, LocationIcon, TimeIcon, StarIcon } from "./Icons";
 import { Tag } from "@/lib/types";
 import { getTagClasses } from "@/lib/tagColors";
 import { createClient } from "@/lib/supabase/client";
@@ -14,6 +14,7 @@ interface MiniEventCardProps {
   tags: Tag[];
   colorScheme?: "blue" | "neutral";
   isBookmarked: boolean;
+  isRegistered?: boolean;
   onClick: (id: string) => void;
   onToggleSave?: (id: string, newState: boolean) => void;
 }
@@ -26,6 +27,7 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
   tags,
   colorScheme = "blue",
   isBookmarked,
+  isRegistered = false,
   onClick,
   onToggleSave,
 }) => {
@@ -70,7 +72,6 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
             .eq("user_id", user.id)
             .eq("event_id", id);
         }
-
         await supabase.from("user_interactions").insert({
           user_id: user.id,
           event_id: id,
@@ -91,11 +92,11 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
       onClick={handleCardClick}
       className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-lg transition flex flex-col overflow-hidden"
     >
-      <div className="flex justify-end px-3 pt-3">
+      <div className="flex justify-end gap-1.5 px-3 pt-3">
         <button
           onClick={handleToggleSave}
           disabled={saving}
-          aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
+          aria-label={isBookmarked ? "Remove bookmark" : "Save event"}
           className="bg-gray-100 p-1.5 rounded-full hover:bg-gray-200 transition"
         >
           <BookmarkIcon
@@ -104,12 +105,17 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
             className="w-5 h-5"
           />
         </button>
+
+        <div
+          aria-label={isRegistered ? "Registered" : "Not registered"}
+          className={`p-1.5 rounded-full ${isRegistered ? "bg-amber-50" : "bg-gray-100"}`}
+        >
+          <StarIcon isStarred={isRegistered} className="w-5 h-5" />
+        </div>
       </div>
 
       <div className="p-4 flex flex-col flex-grow">
-        <h2 className="text-lg font-semibold text-gray-900 line-clamp-2">
-          {title}
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-900 line-clamp-2">{title}</h2>
 
         <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
           <LocationIcon className={`w-4 h-4 ${isNeutral ? "text-gray-700" : "text-blue-600"}`} />
@@ -135,9 +141,7 @@ const MiniEventCard: FC<MiniEventCardProps> = ({
             .map((tag) => (
               <span
                 key={tag.id}
-                className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getTagClasses(
-                  tag.type
-                )}`}
+                className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getTagClasses(tag.type)}`}
               >
                 {tag.label}
               </span>

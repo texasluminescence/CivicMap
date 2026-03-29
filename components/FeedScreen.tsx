@@ -21,25 +21,18 @@ interface EventData {
 
 function buildTags(categories: string | null, tone: string | null): Tag[] {
   const tags: Tag[] = [];
-
   if (categories) {
     categories.split(",").forEach((c, i) => {
       const trimmed = c.trim();
-      if (trimmed) {
-        tags.push({ id: `cat-${i}-${trimmed}`, label: trimmed, type: "Topic" });
-      }
+      if (trimmed) tags.push({ id: `cat-${i}-${trimmed}`, label: trimmed, type: "Topic" });
     });
   }
-
   if (tone) {
     tone.split(",").forEach((t, i) => {
       const trimmed = t.trim();
-      if (trimmed) {
-        tags.push({ id: `tone-${i}-${trimmed}`, label: trimmed, type: "Tone" });
-      }
+      if (trimmed) tags.push({ id: `tone-${i}-${trimmed}`, label: trimmed, type: "Tone" });
     });
   }
-
   return tags;
 }
 
@@ -62,6 +55,7 @@ export default function FeedScreen() {
   const [events, setEvents] = useState<EventData[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [registeredIds, setRegisteredIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "forYou">("all");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -89,23 +83,28 @@ export default function FeedScreen() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
+
       supabase
         .from("saved_events")
         .select("event_id")
         .eq("user_id", user.id)
         .then(({ data }) => {
-          if (data) {
-            setBookmarkedIds(data.map((d) => d.event_id));
-          }
+          if (data) setBookmarkedIds(data.map((d) => d.event_id));
+        });
+
+      supabase
+        .from("registered_events")
+        .select("event_id")
+        .eq("user_id", user.id)
+        .then(({ data }) => {
+          if (data) setRegisteredIds(data.map((d) => d.event_id));
         });
     });
   }, [supabase]);
 
   const toggleValue = (value: string, setFn: React.Dispatch<React.SetStateAction<string[]>>) => {
     setFn((prev) =>
-      prev.includes(value)
-        ? prev.filter((v) => v !== value)
-        : [...prev, value]
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
     );
   };
 
@@ -124,21 +123,13 @@ export default function FeedScreen() {
 
   const topicTags = React.useMemo(() => {
     return Array.from(
-      new Set(
-        events.flatMap((e) =>
-          e.tags.filter((t) => t.type === "Topic").map((t) => t.label)
-        )
-      )
+      new Set(events.flatMap((e) => e.tags.filter((t) => t.type === "Topic").map((t) => t.label)))
     );
   }, [events]);
 
   const toneTags = React.useMemo(() => {
     return Array.from(
-      new Set(
-        events.flatMap((e) =>
-          e.tags.filter((t) => t.type === "Tone").map((t) => t.label)
-        )
-      )
+      new Set(events.flatMap((e) => e.tags.filter((t) => t.type === "Tone").map((t) => t.label)))
     );
   }, [events]);
 
@@ -147,21 +138,13 @@ export default function FeedScreen() {
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const eventTopics = event.tags
-      .filter((t) => t.type === "Topic")
-      .map((t) => t.label);
-
-    const eventTones = event.tags
-      .filter((t) => t.type === "Tone")
-      .map((t) => t.label);
+    const eventTopics = event.tags.filter((t) => t.type === "Topic").map((t) => t.label);
+    const eventTones = event.tags.filter((t) => t.type === "Tone").map((t) => t.label);
 
     const matchesTopics =
-      selectedTopics.length === 0 ||
-      selectedTopics.every((t) => eventTopics.includes(t));
-
+      selectedTopics.length === 0 || selectedTopics.every((t) => eventTopics.includes(t));
     const matchesTones =
-      selectedTones.length === 0 ||
-      selectedTones.every((t) => eventTones.includes(t));
+      selectedTones.length === 0 || selectedTones.every((t) => eventTones.includes(t));
 
     return matchesSearch && matchesTopics && matchesTones;
   });
@@ -169,12 +152,7 @@ export default function FeedScreen() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-center items-center sticky top-0 z-10 gap-2">
-        <img
-          src="/1.png"
-          alt="CivicMap Logo"
-          className="h-12 w-auto mr-4"
-        />
-
+        <img src="/1.png" alt="CivicMap Logo" className="h-12 w-auto mr-4" />
         <SearchAndFilterBar
           searchQuery={searchQuery}
           activeTab={activeTab}
@@ -203,6 +181,7 @@ export default function FeedScreen() {
                 eventDate={formatEventDate(event.event_date)}
                 tags={event.tags}
                 isBookmarked={bookmarkedIds.includes(event.id)}
+                isRegistered={registeredIds.includes(event.id)}
                 onClick={handleCardClick}
                 onToggleSave={handleToggleBookmark}
               />

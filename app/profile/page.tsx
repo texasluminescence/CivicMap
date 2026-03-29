@@ -392,6 +392,7 @@ export default function ProfilePage() {
                   eventDate={formatEventDate(event.event_date)}
                   tags={event.tags}
                   isBookmarked={bookmarkedIds.includes(event.id)}
+                  isRegistered={registeredEvents.some((e) => e.id === event.id)}
                   onClick={(eid) => router.push(`/events/${eid}`)}
                   onToggleSave={handleToggleBookmark}
                 />
@@ -416,6 +417,7 @@ export default function ProfilePage() {
                   eventDate={formatEventDate(event.event_date)}
                   tags={event.tags}
                   isBookmarked={bookmarkedIds.includes(event.id)}
+                  isRegistered={true}
                   onClick={(eid) => router.push(`/events/${eid}`)}
                   onToggleSave={handleToggleBookmark}
                 />
