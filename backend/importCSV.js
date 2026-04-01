@@ -10,6 +10,7 @@ const supabase = createClient(
 );
 
 const events = [];
+const x = "bad formatting";
 
 fs.createReadStream("./backend/finalCSV.csv")
   .pipe(csv({ separator: "," }))
