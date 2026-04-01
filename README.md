@@ -1,7 +1,5 @@
 # CivicMap
 
-**Connecting Austin residents to local civic events that matter to them.**
-
 CivicMap is a web platform that centralizes the discovery of civic engagement opportunities in Austin, TX. Instead of checking multiple websites, users get a personalized feed of city council meetings, town halls, community forums, and political events based on their interests, preferred formats, and schedules.
 
 ---
@@ -35,7 +33,7 @@ CivicMap is a web platform that centralizes the discovery of civic engagement op
 | Database | Supabase (PostgreSQL) |
 | Authentication | Supabase Auth (`@supabase/ssr`) |
 | ML / Data Processing | Python, sentence-transformers, Supabase Python client |
-| Hosting | AWS EC2 |
+| Hosting | Amplify |
 
 ---
 
@@ -55,7 +53,7 @@ Key tables in Supabase:
 
 ## Machine Learning
 
-Two Python scripts in the `ml/` directory:
+Hybrid Python script in the `ml/` directory combining:
 
 1. **Keyword-Based Event Tagging** (`ml/tag_events.py`)
    - Tags events with categories and tone based on keyword matching against event title and description
