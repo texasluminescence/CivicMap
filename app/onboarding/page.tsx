@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { NextResponse } from "next/server";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -135,9 +136,10 @@ const handleFinish = async () => {
     }
 
     router.push(isEditing ? "/profile" : "/events");
-  } catch (err: any) {
-    setError(err.message);
-  } finally {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+} finally {
     setLoading(false);
   }
 };

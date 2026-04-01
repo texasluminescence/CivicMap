@@ -30,7 +30,7 @@ interface PreferenceState {
 }
 
 const TOPIC_OPTIONS = ["Housing", "Environment", "Education", "Healthcare", "Transportation", "Public Safety", "Economy", "Social Justice"];
-const STYLE_OPTIONS = ["Informational", "Contentious", "Collaborative", "Action-Oriented", "Procedural", "Celebration", "Advocacy", "Empathetic", "Urgent", "Neutral"];
+const STYLE_OPTIONS = ["Informational", "Celebration", "Procedural", "Contentious", "Thoughtful", "Action-Oriented", "Innovative", "Educational", "Supportive", "Practical"];
 const SECTOR_OPTIONS = ["Central", "North", "South", "East", "West", "Campus"];
 const SCHEDULE_OPTIONS = ["Weekdays", "Weekends", "Mornings", "Evenings"];
 const FORMAT_OPTIONS = ["In-Person", "Virtual"];
@@ -171,60 +171,64 @@ export default function ProfilePage() {
     }));
   };
 
-  const savePreferences = async () => {
-    // 1. Client-side Validation (New Feature)
-    const totalSelections =
-      draftPreferences.topics.length +
-      draftPreferences.styles.length +
-      draftPreferences.sectors.length +
-      draftPreferences.schedule.length +
-      draftPreferences.format.length;
+const savePreferences = async () => {
+  setError(null);
+  setSaveMessage(null);
 
-    if (totalSelections === 0) {
-      setError("At least one preference must be selected to save your profile.");
-      setSaveMessage(null);
-      return;
+  const totalSelections = [
+    ...draftPreferences.topics,
+    ...draftPreferences.styles,
+    ...draftPreferences.sectors,
+    ...draftPreferences.schedule,
+    ...draftPreferences.format,
+  ].filter(Boolean).length;
+
+  if (totalSelections === 0) {
+    setError("At least one preference must be selected to save your profile.");
+    return; // Exit function; API is never called.
+  }
+
+  setIsSaving(true);
+
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error("Not authenticated. Please log in again.");
+
+    const payload = {
+      userId: user.id,
+      selections: {
+        style: draftPreferences.styles,
+        sectors: draftPreferences.sectors,
+        schedule: draftPreferences.schedule,
+        format: draftPreferences.format,
+        topicNames: draftPreferences.topics,
+      },
+    };
+
+    const response = await fetch("/api/user/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || "Failed to save preferences.");
     }
 
-    setIsSaving(true);
-    setError(null);
+    setPreferences({ ...draftPreferences });
+    setIsEditMode(false);
+    setSaveMessage("Preferences updated successfully!");
+    
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+    setError(msg);
     setSaveMessage(null);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // 2. Call New API Feature
-      const payload = {
-        userId: user.id,
-        selections: {
-          style: draftPreferences.styles,
-          sectors: draftPreferences.sectors,
-          schedule: draftPreferences.schedule,
-          format: draftPreferences.format,
-          topicNames: draftPreferences.topics,
-        },
-      };
-
-      const response = await fetch("/api/user/preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to save preferences.");
-
-      // Success
-      setPreferences(draftPreferences);
-      setIsEditMode(false);
-      setSaveMessage("Preferences updated successfully!");
-    } catch (err: any) {
-      setError(err.message || "Failed to save preferences.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   const handleToggleBookmark = (eventId: string, newState: boolean) => {
     setBookmarkedIds((prev) =>
