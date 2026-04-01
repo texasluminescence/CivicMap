@@ -7,6 +7,7 @@ Trained on user_interactions table data from Supabase.
 """
 import os
 from dotenv import load_dotenv 
+from pathlib import Path
 import pandas as pd
 from supabase import create_client, Client
 from surprise import KNNBasic, Dataset, Reader
@@ -17,13 +18,16 @@ from surprise.trainset import Trainset
 # ── Supabase client ────────────────────────────────────────────────────────────
  
 load_dotenv(Path(__file__).parent.parent / ".env.local")
-SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_KEY") 
+SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_KEY")
+)
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise EnvironmentError(
-        "Missing SUPABASE_URL or SUPABASE_KEY environment variables. "
-        "Make sure your .env file is present and loaded."
+        "Missing Supabase env vars. Set SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) "
+        "and SUPABASE_SERVICE_ROLE_KEY in .env.local"
     )
  
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
