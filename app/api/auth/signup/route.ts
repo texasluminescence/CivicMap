@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { email, password, emailRedirectTo } = await request.json();
+    const { email, password, emailRedirectTo, full_name } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
       password,
       options: {
         emailRedirectTo,
+        data: { full_name },
       },
     });
 
