@@ -62,6 +62,7 @@ export default function FeedScreen() {
   const [events, setEvents] = useState<EventData[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [registeredIds, setRegisteredIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "forYou">("all");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -89,14 +90,21 @@ export default function FeedScreen() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
+
       supabase
         .from("saved_events")
         .select("event_id")
         .eq("user_id", user.id)
         .then(({ data }) => {
-          if (data) {
-            setBookmarkedIds(data.map((d) => d.event_id));
-          }
+          if (data) setBookmarkedIds(data.map((d) => d.event_id));
+        });
+
+      supabase
+        .from("registered_events")
+        .select("event_id")
+        .eq("user_id", user.id)
+        .then(({ data }) => {
+          if (data) setRegisteredIds(data.map((d) => d.event_id));
         });
     });
   }, [supabase]);
@@ -111,6 +119,12 @@ export default function FeedScreen() {
 
   const handleToggleBookmark = (eventId: string, newState: boolean) => {
     setBookmarkedIds((prev) =>
+      newState ? [...prev, eventId] : prev.filter((id) => id !== eventId)
+    );
+  };
+
+  const handleToggleRegister = (eventId: string, newState: boolean) => {
+    setRegisteredIds((prev) =>
       newState ? [...prev, eventId] : prev.filter((id) => id !== eventId)
     );
   };
@@ -203,8 +217,10 @@ export default function FeedScreen() {
                 eventDate={formatEventDate(event.event_date)}
                 tags={event.tags}
                 isBookmarked={bookmarkedIds.includes(event.id)}
+                isRegistered={registeredIds.includes(event.id)}
                 onClick={handleCardClick}
                 onToggleSave={handleToggleBookmark}
+                onToggleRegister={handleToggleRegister}
               />
             ))}
           </div>

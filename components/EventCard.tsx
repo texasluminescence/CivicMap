@@ -78,30 +78,29 @@ const EventCard: FC<EventCardProps> = ({
     if (saving) return;
     setSaving(true);
     const nextState = !registered;
-    setRegistered(nextState);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        if (nextState) {
-          await supabase.from("registered_events").upsert(
-            { user_id: user.id, event_id: eventId },
-            { onConflict: "user_id, event_id" }
-          );
-        } else {
-          await supabase
-            .from("registered_events")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("event_id", eventId);
-        }
-
-        await supabase.from("user_interactions").insert({
-          user_id: user.id,
-          event_id: eventId,
-          interaction_type: nextState ? "register" : "unregister",
-          weight: nextState ? 1.5 : 0.0,
-        });
+      if (!user) return;
+      setRegistered(nextState);
+      if (nextState) {
+        await supabase.from("registered_events").upsert(
+          { user_id: user.id, event_id: eventId },
+          { onConflict: "user_id, event_id" }
+        );
+      } else {
+        await supabase
+          .from("registered_events")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("event_id", eventId);
       }
+
+      await supabase.from("user_interactions").insert({
+        user_id: user.id,
+        event_id: eventId,
+        interaction_type: nextState ? "register" : "unregister",
+        weight: nextState ? 1.5 : 0.0,
+      });
     } catch (err) {
       console.error("Registration sync failed:", err);
       setRegistered(!nextState);

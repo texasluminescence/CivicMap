@@ -116,7 +116,10 @@ export default function ProfilePage() {
   useEffect(() => {
     const initProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        router.push("/auth");
+        return;
+      }
 
       setEmail(user.email ?? "");
       setFullName(user.user_metadata?.full_name ?? "");
@@ -131,7 +134,7 @@ export default function ProfilePage() {
           .from("user_preferences")
           .select("tone, sector, schedule, format")
           .eq("user_id", user.id)
-          .single(),
+          .maybeSingle(),
         supabase
           .from("user_category_prefs")
           .select("category_id, categories(name)")
@@ -194,7 +197,7 @@ export default function ProfilePage() {
     };
 
     initProfile();
-  }, [supabase]);
+  }, [supabase, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -211,49 +214,55 @@ export default function ProfilePage() {
   };
 
   const savePreferences = async () => {
-    setIsSaving(true);
     setError(null);
     setSaveMessage(null);
 
+    // Client-side check (first line of defense)
+    const totalSelections = [
+      ...draftPreferences.topics,
+      ...draftPreferences.styles,
+      ...draftPreferences.sectors,
+      ...draftPreferences.schedule,
+      ...draftPreferences.format,
+    ].filter(Boolean).length;
+
+    if (totalSelections === 0) {
+      setError("At least one preference must be selected to save your profile.");
+      return;
+    }
+
+    setIsSaving(true);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated. Please log in again.");
 
-      await supabase.from("user_category_prefs").delete().eq("user_id", user.id);
+      const payload = {
+        userId: user.id,
+        selections: {
+          style: draftPreferences.styles,
+          sectors: draftPreferences.sectors,
+          schedule: draftPreferences.schedule,
+          format: draftPreferences.format,
+          topicNames: draftPreferences.topics,
+        },
+      };
 
-      if (draftPreferences.topics.length > 0) {
-        const { data: categories } = await supabase
-          .from("categories")
-          .select("id, name")
-          .in("name", draftPreferences.topics);
-
-        if (categories && categories.length > 0) {
-          const categoryRows = categories.map((cat) => ({
-            user_id: user.id,
-            category_id: cat.id,
-          }));
-          const { error: catError } = await supabase
-            .from("user_category_prefs")
-            .insert(categoryRows);
-          if (catError) throw catError;
-        }
-      }
-
-      await supabase.from("user_preferences").delete().eq("user_id", user.id);
-      const { error: prefError } = await supabase.from("user_preferences").upsert({
-        user_id: user.id,
-        tone: draftPreferences.styles,
-        sector: draftPreferences.sectors,
-        schedule: draftPreferences.schedule,
-        format: draftPreferences.format,
+      const response = await fetch("/api/user/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-      if (prefError) throw prefError;
 
-      setPreferences(draftPreferences);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to save preferences.");
+
+      setPreferences({ ...draftPreferences });
       setIsEditMode(false);
-      setSaveMessage("Preferences updated.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save preferences.");
+      setSaveMessage("Preferences updated successfully!");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+      setSaveMessage(null);
     } finally {
       setIsSaving(false);
     }
@@ -274,6 +283,21 @@ export default function ProfilePage() {
       }
     } else {
       setSavedEvents((prev) => prev.filter((e) => e.id !== eventId));
+    }
+  };
+
+  const handleToggleRegister = (eventId: string, newState: boolean) => {
+    if (newState) {
+      const eventToAdd =
+        savedEvents.find((e) => e.id === eventId) ??
+        registeredEvents.find((e) => e.id === eventId);
+      if (eventToAdd) {
+        setRegisteredEvents((prev) =>
+          prev.some((e) => e.id === eventId) ? prev : [...prev, eventToAdd]
+        );
+      }
+    } else {
+      setRegisteredEvents((prev) => prev.filter((e) => e.id !== eventId));
     }
   };
 
@@ -341,16 +365,7 @@ export default function ProfilePage() {
             </div>
             <button
               type="button"
-              onClick={() => {
-                if (isEditMode) {
-                  savePreferences();
-                } else {
-                  setDraftPreferences(preferences);
-                  setIsEditMode(true);
-                  setSaveMessage(null);
-                  setError(null);
-                }
-              }}
+              onClick={() => (isEditMode ? savePreferences() : setIsEditMode(true))}
               disabled={isSaving}
               className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition ${
                 isEditMode
@@ -362,8 +377,16 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {saveMessage && <p className="text-sm text-green-600">{saveMessage}</p>}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+          {saveMessage && !error && (
+            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl text-sm">
+              {saveMessage}
+            </div>
+          )}
 
           {loading ? (
             <p className="text-sm text-gray-400">Loading preferences...</p>
@@ -392,8 +415,10 @@ export default function ProfilePage() {
                   eventDate={formatEventDate(event.event_date)}
                   tags={event.tags}
                   isBookmarked={bookmarkedIds.includes(event.id)}
+                  isRegistered={registeredEvents.some((e) => e.id === event.id)}
                   onClick={(eid) => router.push(`/events/${eid}`)}
                   onToggleSave={handleToggleBookmark}
+                  onToggleRegister={handleToggleRegister}
                 />
               ))}
             </div>
@@ -416,8 +441,10 @@ export default function ProfilePage() {
                   eventDate={formatEventDate(event.event_date)}
                   tags={event.tags}
                   isBookmarked={bookmarkedIds.includes(event.id)}
+                  isRegistered={true}
                   onClick={(eid) => router.push(`/events/${eid}`)}
                   onToggleSave={handleToggleBookmark}
+                  onToggleRegister={handleToggleRegister}
                 />
               ))}
             </div>

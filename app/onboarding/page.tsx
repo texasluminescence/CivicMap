@@ -107,39 +107,34 @@ export default function OnboardingPage() {
   };
 
   const handleFinish = async () => {
+    // Client-side check (first line of defense)
+    const total =
+      selections.categoryIds.length +
+      selections.style.length +
+      selections.sectors.length +
+      selections.schedule.length +
+      selections.format.length;
+    if (total === 0) {
+      setError("Please select at least one preference.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error("No session found");
-      const uid = session.user.id;
 
-      // Upsert general preferences
-      await supabase.from("user_preferences").delete().eq("user_id", uid);
-      const { error: prefError } = await supabase.from("user_preferences").upsert({
-        user_id: uid,
-        tone: selections.style,
-        sector: selections.sectors,
-        schedule: selections.schedule,
-        format: selections.format,
+      // Server-side validation via API (second line of defense)
+      const response = await fetch("/api/user/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session.user.id, selections }),
       });
-      if (prefError) throw prefError;
 
-      // Upsert category preferences
-      await supabase.from("user_category_prefs").delete().eq("user_id", uid);
-      const categoryRows = selections.categoryIds.map((id) => ({
-        user_id: uid,
-        category_id: id,
-      }));
-      if (categoryRows.length > 0) {
-        const { error: catError } = await supabase
-          .from("user_category_prefs")
-          .insert(categoryRows);
-        if (catError) throw catError;
-      }
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to save preferences");
 
       router.push(isEditing ? "/profile" : "/events");
     } catch (err: unknown) {
@@ -284,7 +279,10 @@ export default function OnboardingPage() {
             </button>
           )}
           <button
-            onClick={step < 5 ? () => setStep(step + 1) : handleFinish}
+            onClick={() => {
+              setError(null);
+              if (step < 5) { setStep(step + 1); } else { handleFinish(); }
+            }}
             disabled={loading}
             className="flex-1 bg-green-500 text-white py-4 rounded-2xl font-bold hover:bg-green-600 shadow-lg disabled:opacity-50"
           >
