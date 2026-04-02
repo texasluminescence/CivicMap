@@ -308,7 +308,7 @@ export default function ProfilePage() {
     options: string[],
     title: string,
   ) => (
-    <div className="border border-[#0A38AC]/20 rounded-xl p-4 flex flex-col gap-3 bg-white">
+    <div className="border border-[#0A38AC]/20 rounded-xl p-3 sm:p-4 flex flex-col gap-3 bg-white">
       <h3 className="font-semibold text-gray-900">{title}</h3>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
@@ -334,47 +334,71 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
-      <header className="bg-white shadow-md px-6 py-6 flex items-center gap-4 sticky top-0 z-10">
-        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
-          <UserIcon className="w-8 h-8" />
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-28">
+      <header className="bg-white shadow-md px-4 sm:px-6 py-4 sm:py-6 flex items-center flex-wrap gap-3 sm:gap-4 sticky top-0 z-10">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+          <UserIcon className="w-6 h-6 sm:w-8 sm:h-8" />
         </div>
 
-        <div className="flex flex-col">
-          <span className="font-semibold text-lg">{fullName || "User"}</span>
-          <span className="text-gray-500 text-sm">{email}</span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-semibold text-base sm:text-lg truncate">{fullName || "User"}</span>
+          <span className="text-gray-500 text-sm truncate">{email}</span>
         </div>
 
         <button
           onClick={handleLogout}
-          className="ml-auto bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          className="w-full sm:w-auto sm:ml-auto bg-[#111827] text-white px-4 py-2 rounded-lg hover:bg-black transition"
         >
           Logout
         </button>
       </header>
 
-      <main className="flex flex-col gap-8 px-6 mt-6">
+      <main className="flex flex-col gap-6 sm:gap-8 px-4 sm:px-6 mt-4 sm:mt-6">
         {/* Preferences Section */}
-        <section className="bg-white rounded-2xl shadow-md p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
+        <section className="bg-white rounded-2xl shadow-md p-4 sm:p-6 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-xl font-bold text-gray-900">Preferences</h2>
               <p className="text-sm text-gray-500">
                 Personalize what shows up in your feed.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => (isEditMode ? savePreferences() : setIsEditMode(true))}
-              disabled={isSaving}
-              className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition ${
-                isEditMode
-                  ? "bg-[#72C685] text-gray-900 hover:bg-[#5fb472] disabled:opacity-60"
-                  : "bg-[#0A38AC] text-white hover:bg-[#082d87]"
-              }`}
-            >
-              {isEditMode ? (isSaving ? "Saving..." : "Save") : "Edit"}
-            </button>
+            {isEditMode ? (
+              <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftPreferences(preferences);
+                    setIsEditMode(false);
+                    setError(null);
+                  }}
+                  className="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 w-full sm:w-auto"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={savePreferences}
+                  disabled={isSaving}
+                  className="inline-flex items-center justify-center rounded-md bg-[#72C685] px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-[#5fb472] disabled:opacity-60 w-full sm:w-auto"
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftPreferences(preferences);
+                  setIsEditMode(true);
+                  setSaveMessage(null);
+                  setError(null);
+                }}
+                className="inline-flex items-center justify-center rounded-md bg-[#0A38AC] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#082d87] w-full sm:w-auto"
+              >
+                Edit
+              </button>
+            )}
           </div>
 
           {error && (
@@ -391,12 +415,12 @@ export default function ProfilePage() {
           {loading ? (
             <p className="text-sm text-gray-400">Loading preferences...</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {renderMultiSelect("topics", TOPIC_OPTIONS, "Topics")}
-              {renderMultiSelect("styles", STYLE_OPTIONS, "Styles")}
-              {renderMultiSelect("sectors", SECTOR_OPTIONS, "Locations")}
-              {renderMultiSelect("schedule", SCHEDULE_OPTIONS, "Times")}
-              {renderMultiSelect("format", FORMAT_OPTIONS, "Formats")}
+              {renderMultiSelect("styles", STYLE_OPTIONS, "Style")}
+              {renderMultiSelect("sectors", SECTOR_OPTIONS, "Sectors")}
+              {renderMultiSelect("schedule", SCHEDULE_OPTIONS, "Schedule")}
+              {renderMultiSelect("format", FORMAT_OPTIONS, "Format")}
             </div>
           )}
         </section>

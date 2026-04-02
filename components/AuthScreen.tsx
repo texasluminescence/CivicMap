@@ -68,7 +68,7 @@ export default function AuthScreen() {
           </div>
         )}
 
-        <div className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-4">
           {mode === "signup" && (
             <input
               type="text"
@@ -96,7 +96,7 @@ export default function AuthScreen() {
           />
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50"
           >
@@ -106,7 +106,7 @@ export default function AuthScreen() {
               ? "Sign In"
               : "Create Account"}
           </button>
-        </div>
+        </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
           {mode === "login" ? (
