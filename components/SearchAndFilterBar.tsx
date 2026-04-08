@@ -76,7 +76,7 @@ const SearchAndFilterBar: FC<Props> = ({
 
           {/* Dropdown */}
           {isFilterOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border rounded-xl shadow-xl z-30 p-3 space-y-4">
+            <div className="absolute right-0 mt-2 w-64 max-h-[70vh] overflow-y-auto bg-white border rounded-xl shadow-xl z-30 p-3 space-y-4">
               {/* TOPICS */}
               <div>
                 <p className="bg-gray-100 text-s font-bold text-gray-600 px-1 mb-1 uppercase">
@@ -152,6 +152,15 @@ const SearchAndFilterBar: FC<Props> = ({
           </button>
         </nav>
       </div>
+
+       <nav className="flex md:hidden h-10 rounded-xl overflow-hidden shadow-md bg-white border w-full">
+        <button className={`flex-1 ${activeClasses("all")}`} onClick={() => onTabChange("all")}>
+          All Events
+        </button>
+        <button className={`flex-1 ${activeClasses("forYou")}`} onClick={() => onTabChange("forYou")}>
+          For You
+        </button>
+      </nav>
 
       {/* Active Filters */}
       {hasActiveFilters && (
