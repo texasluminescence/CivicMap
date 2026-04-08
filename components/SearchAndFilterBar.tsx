@@ -65,7 +65,7 @@ const SearchAndFilterBar: FC<Props> = ({
     selectedTones.forEach(onToneToggle);
   };
   return (
-    <div className="flex flex-col gap-2 flex-grow max-w-4xl mx-auto w-full">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-3">
       <div className="flex items-center gap-4">
         {/* SEARCH */}
         <div className="flex flex-1 items-center gap-2 bg-gray-100 p-2 rounded-xl shadow-inner min-w-0">
@@ -75,7 +75,7 @@ const SearchAndFilterBar: FC<Props> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search for an event"
-            className="w-full bg-transparent border-0 outline-none text-gray-700"
+            className="w-full bg-transparent border-0 outline-none text-gray-700 placeholder:text-gray-400"
           />
         </div>
 
@@ -83,10 +83,10 @@ const SearchAndFilterBar: FC<Props> = ({
         <div className="relative" ref={popupRef}>
           <button
             onClick={() => setIsFilterOpen((v) => !v)}
-            className={`p-3 rounded-full shadow-md transition ${
+            className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-sm transition ${
               hasActiveFilters
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "border-blue-600 bg-blue-600 text-white"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
             }`}
             aria-label="Filter events"
           >
@@ -169,13 +169,13 @@ const SearchAndFilterBar: FC<Props> = ({
         {/* TABS */}
         <nav className="hidden md:inline-flex h-10 rounded-xl overflow-hidden shadow-md bg-white border">
           <button
-            className={`px-4 ${activeClasses("all")}`}
+            className={`px-5 transition ${activeClasses("all")}`}
             onClick={() => onTabChange("all")}
           >
             All Events
           </button>
           <button
-            className={`px-4 ${activeClasses("forYou")}`}
+            className={`px-5 transition ${activeClasses("forYou")}`}
             onClick={() => onTabChange("forYou")}
           >
             For You
