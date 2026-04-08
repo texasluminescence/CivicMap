@@ -116,7 +116,10 @@ export default function ProfilePage() {
   useEffect(() => {
     const initProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        router.push("/auth");
+        return;
+      }
 
       setEmail(user.email ?? "");
       setFullName(user.user_metadata?.full_name ?? "");
@@ -131,7 +134,7 @@ export default function ProfilePage() {
           .from("user_preferences")
           .select("tone, sector, schedule, format")
           .eq("user_id", user.id)
-          .single(),
+          .maybeSingle(),
         supabase
           .from("user_category_prefs")
           .select("category_id, categories(name)")
@@ -194,7 +197,7 @@ export default function ProfilePage() {
     };
 
     initProfile();
-  }, [supabase]);
+  }, [supabase, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -211,49 +214,55 @@ export default function ProfilePage() {
   };
 
   const savePreferences = async () => {
-    setIsSaving(true);
     setError(null);
     setSaveMessage(null);
 
+    // Client-side check (first line of defense)
+    const totalSelections = [
+      ...draftPreferences.topics,
+      ...draftPreferences.styles,
+      ...draftPreferences.sectors,
+      ...draftPreferences.schedule,
+      ...draftPreferences.format,
+    ].filter(Boolean).length;
+
+    if (totalSelections === 0) {
+      setError("At least one preference must be selected to save your profile.");
+      return;
+    }
+
+    setIsSaving(true);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Not authenticated. Please log in again.");
 
-      await supabase.from("user_category_prefs").delete().eq("user_id", user.id);
+      const payload = {
+        userId: user.id,
+        selections: {
+          style: draftPreferences.styles,
+          sectors: draftPreferences.sectors,
+          schedule: draftPreferences.schedule,
+          format: draftPreferences.format,
+          topicNames: draftPreferences.topics,
+        },
+      };
 
-      if (draftPreferences.topics.length > 0) {
-        const { data: categories } = await supabase
-          .from("categories")
-          .select("id, name")
-          .in("name", draftPreferences.topics);
-
-        if (categories && categories.length > 0) {
-          const categoryRows = categories.map((cat) => ({
-            user_id: user.id,
-            category_id: cat.id,
-          }));
-          const { error: catError } = await supabase
-            .from("user_category_prefs")
-            .insert(categoryRows);
-          if (catError) throw catError;
-        }
-      }
-
-      await supabase.from("user_preferences").delete().eq("user_id", user.id);
-      const { error: prefError } = await supabase.from("user_preferences").upsert({
-        user_id: user.id,
-        tone: draftPreferences.styles,
-        sector: draftPreferences.sectors,
-        schedule: draftPreferences.schedule,
-        format: draftPreferences.format,
+      const response = await fetch("/api/user/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-      if (prefError) throw prefError;
 
-      setPreferences(draftPreferences);
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Failed to save preferences.");
+
+      setPreferences({ ...draftPreferences });
       setIsEditMode(false);
-      setSaveMessage("Preferences updated.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save preferences.");
+      setSaveMessage("Preferences updated successfully!");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+      setSaveMessage(null);
     } finally {
       setIsSaving(false);
     }
@@ -277,6 +286,21 @@ export default function ProfilePage() {
     }
   };
 
+  const handleToggleRegister = (eventId: string, newState: boolean) => {
+    if (newState) {
+      const eventToAdd =
+        savedEvents.find((e) => e.id === eventId) ??
+        registeredEvents.find((e) => e.id === eventId);
+      if (eventToAdd) {
+        setRegisteredEvents((prev) =>
+          prev.some((e) => e.id === eventId) ? prev : [...prev, eventToAdd]
+        );
+      }
+    } else {
+      setRegisteredEvents((prev) => prev.filter((e) => e.id !== eventId));
+    }
+  };
+
   const selectedPreferences = isEditMode ? draftPreferences : preferences;
 
   const renderMultiSelect = (
@@ -284,7 +308,7 @@ export default function ProfilePage() {
     options: string[],
     title: string,
   ) => (
-    <div className="border border-[#0A38AC]/20 rounded-xl p-4 flex flex-col gap-3 bg-white">
+    <div className="border border-[#0A38AC]/20 rounded-xl p-3 sm:p-4 flex flex-col gap-3 bg-white">
       <h3 className="font-semibold text-gray-900">{title}</h3>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
@@ -310,70 +334,93 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
-      <header className="bg-white shadow-md px-6 py-6 flex items-center gap-4 sticky top-0 z-10">
-        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
-          <UserIcon className="w-8 h-8" />
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-28">
+      <header className="bg-white shadow-md px-4 sm:px-6 py-4 sm:py-6 flex items-center flex-wrap gap-3 sm:gap-4 sticky top-0 z-10">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+          <UserIcon className="w-6 h-6 sm:w-8 sm:h-8" />
         </div>
 
-        <div className="flex flex-col">
-          <span className="font-semibold text-lg">{fullName || "User"}</span>
-          <span className="text-gray-500 text-sm">{email}</span>
+        <div className="flex flex-col min-w-0">
+          <span className="font-semibold text-base sm:text-lg truncate">{fullName || "User"}</span>
+          <span className="text-gray-500 text-sm truncate">{email}</span>
         </div>
 
         <button
           onClick={handleLogout}
-          className="ml-auto bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          className="w-full sm:w-auto sm:ml-auto bg-[#111827] text-white px-4 py-2 rounded-lg hover:bg-black transition"
         >
           Logout
         </button>
       </header>
 
-      <main className="flex flex-col gap-8 px-6 mt-6">
+      <main className="flex flex-col gap-6 sm:gap-8 px-4 sm:px-6 mt-4 sm:mt-6">
         {/* Preferences Section */}
-        <section className="bg-white rounded-2xl shadow-md p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
+        <section className="bg-white rounded-2xl shadow-md p-4 sm:p-6 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-xl font-bold text-gray-900">Preferences</h2>
               <p className="text-sm text-gray-500">
                 Personalize what shows up in your feed.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (isEditMode) {
-                  savePreferences();
-                } else {
+            {isEditMode ? (
+              <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftPreferences(preferences);
+                    setIsEditMode(false);
+                    setError(null);
+                  }}
+                  className="inline-flex items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 w-full sm:w-auto"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={savePreferences}
+                  disabled={isSaving}
+                  className="inline-flex items-center justify-center rounded-md bg-[#72C685] px-4 py-2 text-sm font-medium text-gray-900 transition hover:bg-[#5fb472] disabled:opacity-60 w-full sm:w-auto"
+                >
+                  {isSaving ? "Saving..." : "Save"}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
                   setDraftPreferences(preferences);
                   setIsEditMode(true);
                   setSaveMessage(null);
                   setError(null);
-                }
-              }}
-              disabled={isSaving}
-              className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-medium transition ${
-                isEditMode
-                  ? "bg-[#72C685] text-gray-900 hover:bg-[#5fb472] disabled:opacity-60"
-                  : "bg-[#0A38AC] text-white hover:bg-[#082d87]"
-              }`}
-            >
-              {isEditMode ? (isSaving ? "Saving..." : "Save") : "Edit"}
-            </button>
+                }}
+                className="inline-flex items-center justify-center rounded-md bg-[#0A38AC] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#082d87] w-full sm:w-auto"
+              >
+                Edit
+              </button>
+            )}
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {saveMessage && <p className="text-sm text-green-600">{saveMessage}</p>}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+              {error}
+            </div>
+          )}
+          {saveMessage && !error && (
+            <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl text-sm">
+              {saveMessage}
+            </div>
+          )}
 
           {loading ? (
             <p className="text-sm text-gray-400">Loading preferences...</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {renderMultiSelect("topics", TOPIC_OPTIONS, "Topics")}
-              {renderMultiSelect("styles", STYLE_OPTIONS, "Styles")}
-              {renderMultiSelect("sectors", SECTOR_OPTIONS, "Locations")}
-              {renderMultiSelect("schedule", SCHEDULE_OPTIONS, "Times")}
-              {renderMultiSelect("format", FORMAT_OPTIONS, "Formats")}
+              {renderMultiSelect("styles", STYLE_OPTIONS, "Style")}
+              {renderMultiSelect("sectors", SECTOR_OPTIONS, "Sectors")}
+              {renderMultiSelect("schedule", SCHEDULE_OPTIONS, "Schedule")}
+              {renderMultiSelect("format", FORMAT_OPTIONS, "Format")}
             </div>
           )}
         </section>
@@ -392,8 +439,10 @@ export default function ProfilePage() {
                   eventDate={formatEventDate(event.event_date)}
                   tags={event.tags}
                   isBookmarked={bookmarkedIds.includes(event.id)}
+                  isRegistered={registeredEvents.some((e) => e.id === event.id)}
                   onClick={(eid) => router.push(`/events/${eid}`)}
                   onToggleSave={handleToggleBookmark}
+                  onToggleRegister={handleToggleRegister}
                 />
               ))}
             </div>
@@ -416,8 +465,10 @@ export default function ProfilePage() {
                   eventDate={formatEventDate(event.event_date)}
                   tags={event.tags}
                   isBookmarked={bookmarkedIds.includes(event.id)}
+                  isRegistered={true}
                   onClick={(eid) => router.push(`/events/${eid}`)}
                   onToggleSave={handleToggleBookmark}
+                  onToggleRegister={handleToggleRegister}
                 />
               ))}
             </div>

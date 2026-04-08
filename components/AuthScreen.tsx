@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 export default function AuthScreen() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -21,21 +19,27 @@ export default function AuthScreen() {
 
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: name },
-          },
+        const response = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            full_name: name,
+            emailRedirectTo: `${window.location.origin}/onboarding`,
+          }),
         });
-        if (error) throw error;
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "An error occurred");
         router.push("/onboarding");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
         });
-        if (error) throw error;
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "An error occurred");
         router.push("/events");
       }
     } catch (err: unknown) {
@@ -68,7 +72,7 @@ export default function AuthScreen() {
           </div>
         )}
 
-        <div className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-4">
           {mode === "signup" && (
             <input
               type="text"
@@ -96,7 +100,7 @@ export default function AuthScreen() {
           />
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50"
           >
@@ -106,12 +110,12 @@ export default function AuthScreen() {
               ? "Sign In"
               : "Create Account"}
           </button>
-        </div>
+        </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
           {mode === "login" ? (
             <>
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <button
                 className="text-blue-600 font-medium hover:underline"
                 onClick={() => setMode("signup")}
