@@ -13,9 +13,8 @@ interface EventCardProps {
   eventDate: string;
   description: string;
   tags: Tag[];
-  isBookmarked: boolean;
-  initialRegistered?: boolean;
   onBookmarkToggle: (newState: boolean) => void | Promise<void>;
+  onRegisterToggle: (newState: boolean) => void | Promise<void>;
 }
 
 const EventCard: FC<EventCardProps> = ({
@@ -25,50 +24,93 @@ const EventCard: FC<EventCardProps> = ({
   eventDate,
   description,
   tags,
-  isBookmarked,
-  initialRegistered = false,
   onBookmarkToggle,
+  onRegisterToggle
 }) => {
   const supabase = useMemo(() => createClient(), []);
   const [saving, setSaving] = useState(false);
-  const [registered, setRegistered] = useState(initialRegistered);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [registered, setRegistered] = useState(false);
+  const [loadingState, setLoadingState] = useState(true);
 
   useEffect(() => {
-    setRegistered(initialRegistered);
-  }, [initialRegistered]);
+    const loadUserState = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          setLoadingState(false);
+          return;
+        }
+
+        const [savedRes, registeredRes] = await Promise.all([
+          supabase
+            .from("saved_events")
+            .select("event_id")
+            .eq("user_id", user.id)
+            .eq("event_id", eventId)
+            .maybeSingle(),
+
+          supabase
+            .from("registered_events")
+            .select("event_id")
+            .eq("user_id", user.id)
+            .eq("event_id", eventId)
+            .maybeSingle(),
+        ]);
+
+        setBookmarked(!!savedRes.data);
+        setRegistered(!!registeredRes.data);
+      } catch (err) {
+        console.error("Failed loading event state:", err);
+      } finally {
+        setLoadingState(false);
+      }
+    };
+
+    loadUserState();
+  }, [eventId, supabase]);
 
   const handleBookmarkClick = async () => {
     if (saving) return;
+
+    const next = !bookmarked;
     setSaving(true);
-    const nextState = !isBookmarked;
+    setBookmarked(next);
+
     try {
-      await onBookmarkToggle(nextState);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        if (nextState) {
-          await supabase.from("saved_events").upsert(
-            { user_id: user.id, event_id: eventId },
-            { onConflict: "user_id, event_id" }
-          );
-        } else {
-          await supabase
-            .from("saved_events")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("event_id", eventId);
-        }
+      if (!user) return;
 
-        await supabase.from("user_interactions").insert({
-          user_id: user.id,
-          event_id: eventId,
-          interaction_type: nextState ? "save" : "unsave",
-          weight: nextState ? 1.0 : 0.0,
-        });
+      if (next) {
+        await supabase.from("saved_events").upsert(
+          { user_id: user.id, event_id: eventId },
+          { onConflict: "user_id,event_id" }
+        );
+      } else {
+        await supabase
+          .from("saved_events")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("event_id", eventId);
       }
+
+      await supabase.from("user_interactions").insert({
+        user_id: user.id,
+        event_id: eventId,
+        interaction_type: next ? "save" : "unsave",
+        weight: next ? 1.0 : 0.0,
+      });
+
+      onBookmarkToggle?.(next);
     } catch (err) {
-      console.error("Bookmark sync failed:", err);
-      onBookmarkToggle(isBookmarked);
+      console.error(err);
+      setBookmarked(!next);
     } finally {
       setSaving(false);
     }
@@ -76,16 +118,22 @@ const EventCard: FC<EventCardProps> = ({
 
   const handleRegisterToggle = async () => {
     if (saving) return;
+
+    const next = !registered;
     setSaving(true);
-    const nextState = !registered;
+    setRegistered(next);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) return;
-      setRegistered(nextState);
-      if (nextState) {
+
+      if (next) {
         await supabase.from("registered_events").upsert(
           { user_id: user.id, event_id: eventId },
-          { onConflict: "user_id, event_id" }
+          { onConflict: "user_id,event_id" }
         );
       } else {
         await supabase
@@ -98,12 +146,14 @@ const EventCard: FC<EventCardProps> = ({
       await supabase.from("user_interactions").insert({
         user_id: user.id,
         event_id: eventId,
-        interaction_type: nextState ? "register" : "unregister",
-        weight: nextState ? 1.5 : 0.0,
+        interaction_type: next ? "register" : "unregister",
+        weight: next ? 1.5 : 0.0,
       });
+
+      onRegisterToggle?.(next);
     } catch (err) {
-      console.error("Registration sync failed:", err);
-      setRegistered(!nextState);
+      console.error(err);
+      setRegistered(!next);
     } finally {
       setSaving(false);
     }
@@ -120,7 +170,7 @@ const EventCard: FC<EventCardProps> = ({
             aria-label="Toggle bookmark"
             className="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition disabled:opacity-50 shrink-0 ml-3"
           >
-            <BookmarkIcon isBookmarked={isBookmarked} className="w-5 h-5" />
+            <BookmarkIcon isBookmarked={bookmarked} className="w-5 h-5" />
           </button>
         </div>
 
@@ -167,11 +217,7 @@ const EventCard: FC<EventCardProps> = ({
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
         >
-          {saving
-            ? "Processing..."
-            : registered
-              ? "Registered ✕"
-              : "Register for Event"}
+          {registered ? "Registered ✕" : "Register for Event"}
         </button>
       </div>
     </article>

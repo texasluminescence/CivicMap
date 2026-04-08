@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import { SearchIcon, SlidersIcon } from "./Icons";
 
 type Props = {
@@ -23,19 +23,35 @@ type Props = {
 const SearchAndFilterBar: FC<Props> = ({
   searchQuery,
   activeTab,
-
   topicTags,
   toneTags,
-
   selectedTopics,
   selectedTones,
-
   onSearchChange,
   onTabChange,
   onTopicToggle,
   onToneToggle,
 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(e.target as Node)
+      ) {
+        setIsFilterOpen(false);
+      }
+    }
+
+    if (isFilterOpen) {
+      document.addEventListener("mousedown", handleClick);
+    }
+
+    return () =>
+      document.removeEventListener("mousedown", handleClick);
+  }, [isFilterOpen]);
 
   const activeClasses = (tab: "all" | "forYou") =>
     activeTab === tab
@@ -44,11 +60,14 @@ const SearchAndFilterBar: FC<Props> = ({
 
   const hasActiveFilters =
     selectedTopics.length > 0 || selectedTones.length > 0;
-
+  const clearAllFilters = () => {
+    selectedTopics.forEach(onTopicToggle);
+    selectedTones.forEach(onToneToggle);
+  };
   return (
     <div className="flex flex-col gap-2 flex-grow max-w-4xl mx-auto w-full">
       <div className="flex items-center gap-4">
-        {/* Search */}
+        {/* SEARCH */}
         <div className="flex flex-1 items-center gap-2 bg-gray-100 p-2 rounded-xl shadow-inner min-w-0">
           <SearchIcon className="text-gray-400 flex-shrink-0" />
           <input
@@ -60,8 +79,8 @@ const SearchAndFilterBar: FC<Props> = ({
           />
         </div>
 
-        {/* Filter Button */}
-        <div className="relative">
+        {/* FILTER BUTTON + DROPDOWN */}
+        <div className="relative" ref={popupRef}>
           <button
             onClick={() => setIsFilterOpen((v) => !v)}
             className={`p-3 rounded-full shadow-md transition ${
@@ -74,69 +93,80 @@ const SearchAndFilterBar: FC<Props> = ({
             <SlidersIcon />
           </button>
 
-          {/* Dropdown */}
           {isFilterOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white border rounded-xl shadow-xl z-30 p-3 space-y-4">
-              {/* TOPICS */}
-              <div>
-                <p className="bg-gray-100 text-s font-bold text-gray-600 px-1 mb-1 uppercase">
-                  Topics
-                </p>
+            <div className="absolute right-0 top-full mt-2 z-30">
+              <div className="w-[min(38vw,300px)] bg-white border rounded-xl shadow-xl flex flex-col max-h-[70vh]">
 
-                {topicTags.length === 0 && (
-                  <p className="text-xs text-gray-400 px-1">No topics</p>
-                )}
+                {/* SCROLLABLE CONTENT ONLY */}
+                <div className="overflow-y-auto p-3 space-y-4">
 
-                {topicTags.map((tag) => {
-                  const selected = selectedTopics.includes(tag);
-                  return (
-                    <button
-                      key={tag}
-                      onClick={() => onTopicToggle(tag)}
-                      className={`w-full text-left px-2 py-1 rounded text-sm transition ${
-                        selected
-                          ? "bg-blue-100 text-blue-700 font-semibold"
-                          : "hover:bg-gray-100"
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  );
-                })}
-              </div>
+                  {/* TOPICS */}
+                  <div>
+                    <p className="bg-gray-100 text-sm font-bold text-gray-600 px-1 mb-1 uppercase">
+                      Topics
+                    </p>
 
-              {/* TONES */}
-              <div>
-                <p className="bg-gray-100 text-s font-bold text-gray-600 px-1 mb-1 uppercase">
-                  Tone
-                </p>
+                    {topicTags.length === 0 && (
+                      <p className="text-xs text-gray-400 px-1">
+                        No topics
+                      </p>
+                    )}
 
-                {toneTags.length === 0 && (
-                  <p className="text-xs text-gray-400 px-1">No tones</p>
-                )}
+                    {topicTags.map((tag) => {
+                      const selected = selectedTopics.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          onClick={() => onTopicToggle(tag)}
+                          className={`w-full text-left px-2 py-1 rounded text-sm transition ${
+                            selected
+                              ? "bg-blue-100 text-blue-700 font-semibold"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                {toneTags.map((tag) => {
-                  const selected = selectedTones.includes(tag);
-                  return (
-                    <button
-                      key={tag}
-                      onClick={() => onToneToggle(tag)}
-                      className={`w-full text-left px-2 py-1 rounded text-sm transition ${
-                        selected
-                          ? "bg-green-100 text-green-700 font-semibold"
-                          : "hover:bg-gray-100"
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  );
-                })}
+                  {/* TONES */}
+                  <div>
+                    <p className="bg-gray-100 text-sm font-bold text-gray-600 px-1 mb-1 uppercase">
+                      Tone
+                    </p>
+
+                    {toneTags.length === 0 && (
+                      <p className="text-xs text-gray-400 px-1">
+                        No tones
+                      </p>
+                    )}
+
+                    {toneTags.map((tag) => {
+                      const selected = selectedTones.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          onClick={() => onToneToggle(tag)}
+                          className={`w-full text-left px-2 py-1 rounded text-sm transition ${
+                            selected
+                              ? "bg-green-100 text-green-700 font-semibold"
+                              : "hover:bg-gray-100"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Tabs */}
+        {/* TABS */}
         <nav className="hidden md:inline-flex h-10 rounded-xl overflow-hidden shadow-md bg-white border">
           <button
             className={`px-4 ${activeClasses("all")}`}
@@ -153,25 +183,38 @@ const SearchAndFilterBar: FC<Props> = ({
         </nav>
       </div>
 
-      {/* Active Filters */}
+      {/* ACTIVE FILTER CHIPS */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Clear All Button */}
+          <button
+            onClick={clearAllFilters}
+            className="text-xs font-semibold text-gray-500 hover:text-red-600 transition mr-1"
+          >
+            Clear all 
+            <span className="font-bold leading-none"> ×</span>
+          </button>
+
           {selectedTopics.map((tag) => (
-            <span
-              key={tag}
-              className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
+            <button
+              key={`topic-${tag}`}
+              onClick={() => onTopicToggle(tag)}
+              className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full hover:bg-blue-200 active:scale-95 transition"
             >
               {tag}
-            </span>
+              <span className="font-bold leading-none">×</span>
+            </button>
           ))}
 
           {selectedTones.map((tag) => (
-            <span
-              key={tag}
-              className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full"
+            <button
+              key={`tone-${tag}`}
+              onClick={() => onToneToggle(tag)}
+              className="flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full hover:bg-green-200 active:scale-95 transition"
             >
               {tag}
-            </span>
+              <span className="font-bold leading-none">×</span>
+            </button>
           ))}
         </div>
       )}
