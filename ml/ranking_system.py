@@ -73,3 +73,4 @@ if __name__ == "__main__":
     print("Top events for user-budget-fan:")
     for e in top_events:
         print(f" - {e['title']} ({e['category']})")
+

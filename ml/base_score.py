@@ -10,11 +10,17 @@ import ast
 # ========== CONFIG ==========
 load_dotenv(Path(__file__).parent.parent / ".env.local")
 
-SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_KEY")
+SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    or os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_KEY")
+)
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars")
+    raise ValueError(
+        "Missing Supabase env vars. Set SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL) "
+        "and SUPABASE_SERVICE_ROLE_KEY in .env.local"
+    )
 
 # ========== INIT CLIENTS ==========
 print("Loading embedding model...")
@@ -49,7 +55,7 @@ for event in events:
         event_embedding = np.array(ast.literal_eval(event["embedding"]))
     else:
         event_embedding = np.array(event["embedding"])
-
+    
     # Cosine similarity
     sim = cosine_similarity(user_vector.reshape(1, -1), event_embedding.reshape(1, -1))[0][0]
     base_scores[event["id"]] = sim
@@ -60,3 +66,4 @@ print("\nTop 5 base score events:")
 for eid, score in top5:
     title = next((e["title"] for e in events if e["id"] == eid), "Unknown")
     print(f" - {title} | Score: {score:.3f}")
+

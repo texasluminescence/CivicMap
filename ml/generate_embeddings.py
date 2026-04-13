@@ -1,32 +1,29 @@
+from dotenv import load_dotenv
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-
-load_dotenv(Path(__file__).parent.parent / ".env.local")
-
 from supabase import create_client
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
+import numpy as np
 
 # ========== CONFIG ==========
-SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_KEY")
+load_dotenv(Path(__file__).parent.parent / ".env.local")
+SUPABASE_URL = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_SERVICE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_SERVICE_KEY env vars")
+    raise ValueError("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars")
 
-# ========== INIT CLIENTS ==========
-print("Loading embedding model (first run may take 1–2 minutes)...")
+# ========== INIT ==========
+print("Loading embedding model...")
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 print("Connecting to Supabase...")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ========== FETCH EVENTS ==========
-print("Fetching events from Supabase...")
-response = supabase.table("events").select("id, title, description, category").execute()
+response = supabase.table("events").select("id, title, description").execute()
 events = response.data
-
 if not events:
     raise RuntimeError("No events found in the events table!")
 
@@ -39,15 +36,17 @@ fail_count = 0
 for event in tqdm(events, desc="Generating embeddings"):
     event_id = event["id"]
 
-    title = event.get("title", "") or ""
-    description = event.get("description", "") or ""
-    category = event.get("category", "") or ""
+    title = (event.get("title") or "").strip()
+    description = (event.get("description") or "").strip()
 
-    text = f"Title: {title}. Description: {description}. Category: {category}."
+    # Use only title + description
+    text = f"{title}. {description}"
 
     try:
-        embedding = model.encode(text)              # numpy array (384,)
-        embedding_list = embedding.tolist()         # convert to list for Supabase
+        embedding = model.encode(text)
+        # normalize embedding for better cosine similarity later
+        embedding = embedding / np.linalg.norm(embedding)
+        embedding_list = embedding.tolist()
 
         supabase.table("events") \
             .update({"embedding": embedding_list}) \
@@ -57,16 +56,11 @@ for event in tqdm(events, desc="Generating embeddings"):
         success_count += 1
 
     except Exception as e:
-        print(f"FAILED for event_id={event_id}: {e}")
+        print(f"❌ Failed for event_id={event_id}: {e}")
         fail_count += 1
 
 print("\n========== SUMMARY ==========")
-print(f"Success: {success_count}")
-print(f"Failed: {fail_count}")
-print(f"Total: {len(events)}")
+print(f"✅ Success: {success_count}")
+print(f"❌ Failed: {fail_count}")
+print(f"📦 Total: {len(events)}")
 
-# ========== VERIFICATION ==========
-print("\nVerifying embeddings in database...")
-verify_response = supabase.table("events").select("id", count="exact").not_.is_("embedding", "null").execute()
-
-print(f"Embeddings saved for {verify_response.count} / {len(events)} events")

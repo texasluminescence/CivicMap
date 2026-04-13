@@ -75,7 +75,7 @@ def rank_events_for_user(user_id, event_ids=None):
 
     # ---- Fetch events ----
     query = supabase.table("events").select(
-        "id, title, category, embedding, tone, sector, is_virtual, event_date"
+        "id, title, categories, embedding, tone, sector, is_virtual, event_date"
     )
 
     if event_ids:
