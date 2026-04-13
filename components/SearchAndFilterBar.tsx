@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import { SearchIcon, SlidersIcon } from "./Icons";
 
 type Props = {
@@ -23,19 +23,35 @@ type Props = {
 const SearchAndFilterBar: FC<Props> = ({
   searchQuery,
   activeTab,
-
   topicTags,
   toneTags,
-
   selectedTopics,
   selectedTones,
-
   onSearchChange,
   onTabChange,
   onTopicToggle,
   onToneToggle,
 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(e.target as Node)
+      ) {
+        setIsFilterOpen(false);
+      }
+    }
+
+    if (isFilterOpen) {
+      document.addEventListener("mousedown", handleClick);
+    }
+
+    return () =>
+      document.removeEventListener("mousedown", handleClick);
+  }, [isFilterOpen]);
 
   const activeClasses = (tab: "all" | "forYou") =>
     activeTab === tab
@@ -44,11 +60,14 @@ const SearchAndFilterBar: FC<Props> = ({
 
   const hasActiveFilters =
     selectedTopics.length > 0 || selectedTones.length > 0;
-
+  const clearAllFilters = () => {
+    selectedTopics.forEach(onTopicToggle);
+    selectedTones.forEach(onToneToggle);
+  };
   return (
-    <div className="flex flex-col gap-2 flex-grow max-w-4xl mx-auto w-full">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-3">
       <div className="flex items-center gap-4">
-        {/* Search */}
+        {/* SEARCH */}
         <div className="flex flex-1 items-center gap-2 bg-gray-100 p-2 rounded-xl shadow-inner min-w-0">
           <SearchIcon className="text-gray-400 flex-shrink-0" />
           <input
@@ -56,25 +75,24 @@ const SearchAndFilterBar: FC<Props> = ({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search for an event"
-            className="w-full bg-transparent border-0 outline-none text-gray-700"
+            className="w-full bg-transparent border-0 outline-none text-gray-700 placeholder:text-gray-400"
           />
         </div>
 
-        {/* Filter Button */}
-        <div className="relative">
+        {/* FILTER BUTTON + DROPDOWN */}
+        <div className="relative" ref={popupRef}>
           <button
             onClick={() => setIsFilterOpen((v) => !v)}
-            className={`p-3 rounded-full shadow-md transition ${
+            className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-sm transition ${
               hasActiveFilters
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "border-blue-600 bg-blue-600 text-white"
+                : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
             }`}
             aria-label="Filter events"
           >
             <SlidersIcon />
           </button>
 
-          {/* Dropdown */}
           {isFilterOpen && (
             <div className="absolute right-0 mt-2 w-64 max-h-[70vh] overflow-y-auto bg-white border rounded-xl shadow-xl z-30 p-3 space-y-4">
               {/* TOPICS */}
@@ -136,16 +154,16 @@ const SearchAndFilterBar: FC<Props> = ({
           )}
         </div>
 
-        {/* Tabs */}
+        {/* TABS */}
         <nav className="hidden md:inline-flex h-10 rounded-xl overflow-hidden shadow-md bg-white border">
           <button
-            className={`px-4 ${activeClasses("all")}`}
+            className={`px-5 transition ${activeClasses("all")}`}
             onClick={() => onTabChange("all")}
           >
             All Events
           </button>
           <button
-            className={`px-4 ${activeClasses("forYou")}`}
+            className={`px-5 transition ${activeClasses("forYou")}`}
             onClick={() => onTabChange("forYou")}
           >
             For You
@@ -153,6 +171,7 @@ const SearchAndFilterBar: FC<Props> = ({
         </nav>
       </div>
 
+      {/* ACTIVE FILTER CHIPS */}
        <nav className="flex md:hidden h-10 rounded-xl overflow-hidden shadow-md bg-white border w-full">
         <button className={`flex-1 ${activeClasses("all")}`} onClick={() => onTabChange("all")}>
           All Events
@@ -164,23 +183,36 @@ const SearchAndFilterBar: FC<Props> = ({
 
       {/* Active Filters */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Clear All Button */}
+          <button
+            onClick={clearAllFilters}
+            className="text-xs font-semibold text-gray-500 hover:text-red-600 transition mr-1"
+          >
+            Clear all 
+            <span className="font-bold leading-none"> ×</span>
+          </button>
+
           {selectedTopics.map((tag) => (
-            <span
-              key={tag}
-              className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
+            <button
+              key={`topic-${tag}`}
+              onClick={() => onTopicToggle(tag)}
+              className="flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full hover:bg-blue-200 active:scale-95 transition"
             >
               {tag}
-            </span>
+              <span className="font-bold leading-none">×</span>
+            </button>
           ))}
 
           {selectedTones.map((tag) => (
-            <span
-              key={tag}
-              className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full"
+            <button
+              key={`tone-${tag}`}
+              onClick={() => onToneToggle(tag)}
+              className="flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full hover:bg-green-200 active:scale-95 transition"
             >
               {tag}
-            </span>
+              <span className="font-bold leading-none">×</span>
+            </button>
           ))}
         </div>
       )}

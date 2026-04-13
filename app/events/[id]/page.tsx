@@ -143,9 +143,8 @@ export default function EventDetailPage() {
           eventDate={formatEventDate(event.event_date)}
           description={event.description}
           tags={event.tags}
-          isBookmarked={isBookmarked}
-          initialRegistered={isRegistered}
           onBookmarkToggle={(newState: boolean) => setIsBookmarked(newState)}
+          onRegisterToggle={(newState) => setIsRegistered(newState)}
         />
       </div>
 
