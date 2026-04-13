@@ -1,0 +1,21 @@
+{
+  "last_trained_at": "2026-04-08T21:11:56.740062+00:00",
+  "n_interactions": 204,
+  "n_users": 23,
+  "n_events": 55,
+  "model_path": "C:\\Users\\sasha\\OneDrive\\Desktop\\CivicMap\\ml\\model\\collab_model.pkl",
+  "training_history": [
+    {
+      "trained_at": "2026-04-08T18:40:17.024419+00:00",
+      "n_interactions": 141,
+      "n_users": 18,
+      "n_events": 32
+    },
+    {
+      "trained_at": "2026-04-08T21:11:56.740062+00:00",
+      "n_interactions": 204,
+      "n_users": 23,
+      "n_events": 55
+    }
+  ]
+}
