@@ -60,7 +60,9 @@ export default function FeedScreen() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [events, setEvents] = useState<EventData[]>([]);
+  const [forYouEvents, setForYouEvents] = useState<EventData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [forYouLoading, setForYouLoading] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [registeredIds, setRegisteredIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,6 +88,34 @@ export default function FeedScreen() {
         setLoading(false);
       });
   }, [supabase]);
+
+  useEffect(() => {
+    if (activeTab !== "forYou" || forYouEvents.length > 0) return;
+    setForYouLoading(true);
+    fetch("/api/recommendations?n=20")
+      .then((r) => r.json())
+      .then((data) => {
+        const recs: EventData[] = (data.recommendations ?? [])
+          .map((r: { event: Record<string, unknown> | null }) => {
+            const e = r.event;
+            if (!e) return null;
+            return {
+              id: String(e.id),
+              title: String(e.title ?? ""),
+              location: String(e.location ?? ""),
+              event_date: (e.event_date as string) ?? null,
+              description: String(e.description ?? ""),
+              categories: (e.categories as string) ?? null,
+              tone: (e.tone as string) ?? null,
+              tags: buildTags((e.categories as string) ?? null, (e.tone as string) ?? null),
+            };
+          })
+          .filter(Boolean);
+        setForYouEvents(recs);
+      })
+      .catch(() => {})
+      .finally(() => setForYouLoading(false));
+  }, [activeTab, forYouEvents.length]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -130,9 +160,6 @@ export default function FeedScreen() {
   };
 
   const handleCardClick = (eventId: string) => {
-    const event = events.find((e) => e.id === eventId);
-    if (!event) return;
-    localStorage.setItem("selectedEvent", JSON.stringify(event));
     router.push(`/events/${eventId}`);
   };
 
@@ -156,7 +183,9 @@ export default function FeedScreen() {
     );
   }, [events]);
 
-  const filteredEvents = events.filter((event) => {
+  const activeEvents = activeTab === "forYou" ? forYouEvents : events;
+
+  const filteredEvents = activeEvents.filter((event) => {
     const matchesSearch =
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       event.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -204,7 +233,7 @@ export default function FeedScreen() {
       </header>
 
       <main className="p-6 pb-24">
-        {loading ? (
+        {(activeTab === "all" ? loading : forYouLoading) ? (
           <p className="text-center text-gray-500 py-20">Loading events...</p>
         ) : filteredEvents.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -226,9 +255,13 @@ export default function FeedScreen() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <h2 className="text-xl font-semibold text-gray-800">No events found</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              {activeTab === "forYou" ? "No recommendations yet" : "No events found"}
+            </h2>
             <p className="text-gray-500 mt-2">
-              Try adjusting your search or filters to find what you&apos;re looking for.
+              {activeTab === "forYou"
+                ? "Interact with a few events to get personalized recommendations."
+                : "Try adjusting your search or filters to find what you're looking for."}
             </p>
           </div>
         )}
