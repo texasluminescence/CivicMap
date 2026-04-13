@@ -186,7 +186,7 @@ export default function FeedScreen() {
         <img
           src="/1.png"
           alt="CivicMap Logo"
-          className="h-12 w-auto mr-4"
+          className="h-12 w-auto"
         />
 
         <SearchAndFilterBar
@@ -203,7 +203,7 @@ export default function FeedScreen() {
         />
       </header>
 
-      <main className="p-6">
+      <main className="p-6 pb-24">
         {loading ? (
           <p className="text-center text-gray-500 py-20">Loading events...</p>
         ) : filteredEvents.length > 0 ? (

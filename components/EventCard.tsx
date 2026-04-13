@@ -160,8 +160,7 @@ const EventCard: FC<EventCardProps> = ({
   };
 
   return (
-    <article className="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
-      <div className="p-6 flex flex-col gap-4">
+      <article className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">      <div className="p-6 flex flex-col gap-4">
         <div className="flex items-start justify-between">
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
           <button

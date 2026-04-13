@@ -94,73 +94,61 @@ const SearchAndFilterBar: FC<Props> = ({
           </button>
 
           {isFilterOpen && (
-            <div className="absolute right-0 top-full mt-2 z-30">
-              <div className="w-[min(38vw,300px)] bg-white border rounded-xl shadow-xl flex flex-col max-h-[70vh]">
+            <div className="absolute right-0 mt-2 w-64 max-h-[70vh] overflow-y-auto bg-white border rounded-xl shadow-xl z-30 p-3 space-y-4">
+              {/* TOPICS */}
+              <div>
+                <p className="bg-gray-100 text-s font-bold text-gray-600 px-1 mb-1 uppercase">
+                  Topics
+                </p>
 
-                {/* SCROLLABLE CONTENT ONLY */}
-                <div className="overflow-y-auto p-3 space-y-4">
+                {topicTags.length === 0 && (
+                  <p className="text-xs text-gray-400 px-1">No topics</p>
+                )}
 
-                  {/* TOPICS */}
-                  <div>
-                    <p className="bg-gray-100 text-sm font-bold text-gray-600 px-1 mb-1 uppercase">
-                      Topics
-                    </p>
+                {topicTags.map((tag) => {
+                  const selected = selectedTopics.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => onTopicToggle(tag)}
+                      className={`w-full text-left px-2 py-1 rounded text-sm transition ${
+                        selected
+                          ? "bg-blue-100 text-blue-700 font-semibold"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
 
-                    {topicTags.length === 0 && (
-                      <p className="text-xs text-gray-400 px-1">
-                        No topics
-                      </p>
-                    )}
+              {/* TONES */}
+              <div>
+                <p className="bg-gray-100 text-s font-bold text-gray-600 px-1 mb-1 uppercase">
+                  Tone
+                </p>
 
-                    {topicTags.map((tag) => {
-                      const selected = selectedTopics.includes(tag);
-                      return (
-                        <button
-                          key={tag}
-                          onClick={() => onTopicToggle(tag)}
-                          className={`w-full text-left px-2 py-1 rounded text-sm transition ${
-                            selected
-                              ? "bg-blue-100 text-blue-700 font-semibold"
-                              : "hover:bg-gray-100"
-                          }`}
-                        >
-                          {tag}
-                        </button>
-                      );
-                    })}
-                  </div>
+                {toneTags.length === 0 && (
+                  <p className="text-xs text-gray-400 px-1">No tones</p>
+                )}
 
-                  {/* TONES */}
-                  <div>
-                    <p className="bg-gray-100 text-sm font-bold text-gray-600 px-1 mb-1 uppercase">
-                      Tone
-                    </p>
-
-                    {toneTags.length === 0 && (
-                      <p className="text-xs text-gray-400 px-1">
-                        No tones
-                      </p>
-                    )}
-
-                    {toneTags.map((tag) => {
-                      const selected = selectedTones.includes(tag);
-                      return (
-                        <button
-                          key={tag}
-                          onClick={() => onToneToggle(tag)}
-                          className={`w-full text-left px-2 py-1 rounded text-sm transition ${
-                            selected
-                              ? "bg-green-100 text-green-700 font-semibold"
-                              : "hover:bg-gray-100"
-                          }`}
-                        >
-                          {tag}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                </div>
+                {toneTags.map((tag) => {
+                  const selected = selectedTones.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => onToneToggle(tag)}
+                      className={`w-full text-left px-2 py-1 rounded text-sm transition ${
+                        selected
+                          ? "bg-green-100 text-green-700 font-semibold"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -184,6 +172,16 @@ const SearchAndFilterBar: FC<Props> = ({
       </div>
 
       {/* ACTIVE FILTER CHIPS */}
+       <nav className="flex md:hidden h-10 rounded-xl overflow-hidden shadow-md bg-white border w-full">
+        <button className={`flex-1 ${activeClasses("all")}`} onClick={() => onTabChange("all")}>
+          All Events
+        </button>
+        <button className={`flex-1 ${activeClasses("forYou")}`} onClick={() => onTabChange("forYou")}>
+          For You
+        </button>
+      </nav>
+
+      {/* Active Filters */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2">
           {/* Clear All Button */}
