@@ -64,29 +64,8 @@ Hybrid Python script in the `ml/` directory combining:
    - Combines title, description, and category into a single text for embedding
    - Stores embeddings in the embedding column for future similarity-based recommendations
 
---- 
-
-## Team
-
-**Build Team Lead:** Ashi Sharma
-
-### Frontend
-- Arav Bazar
-- Shravan Venkat
-- Khushi Bhalani
-
-### Backend
-- Hana Alsayed
-- Anshu Siripurapu
-- Vishal Rajkumar
-
-### Machine Learning
-- Nidhi Ilanthalavian
-- Sasha Haltom
-- Raina James
-
 ---
 
 ## Contact
 
-Project Lead: ashisharma@utexas.edu
+Project Lead: Ashi Sharma (ashisharma@utexas.edu)
