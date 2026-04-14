@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import MiniEventCard from "@/components/MiniEventCard";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -75,6 +76,7 @@ export default function FeedScreen() {
       .from("events")
       .select("id, title, description, location, event_date, categories, tone")
       .order("event_date", { ascending: true })
+      .limit(50)
       .then(({ data, error }) => {
         if (error) {
           console.error("Failed to fetch events:", error.message);
@@ -125,6 +127,7 @@ export default function FeedScreen() {
         .from("saved_events")
         .select("event_id")
         .eq("user_id", user.id)
+        .limit(100)
         .then(({ data }) => {
           if (data) setBookmarkedIds(data.map((d) => d.event_id));
         });
@@ -133,6 +136,7 @@ export default function FeedScreen() {
         .from("registered_events")
         .select("event_id")
         .eq("user_id", user.id)
+        .limit(100)
         .then(({ data }) => {
           if (data) setRegisteredIds(data.map((d) => d.event_id));
         });
@@ -212,10 +216,13 @@ export default function FeedScreen() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white shadow-md px-4 py-3 flex flex-col md:flex-row justify-center items-center sticky top-0 z-10 gap-2">
-        <img
+        <Image
           src="/1.png"
           alt="CivicMap Logo"
+          width={120}
+          height={48}
           className="h-12 w-auto"
+          priority
         />
 
         <SearchAndFilterBar

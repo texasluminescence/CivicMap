@@ -35,8 +35,9 @@ yarn-error.log*
 .pnpm-debug.log*
 
 
-# venv 
+# venv
 venv/
+venv311/
 ml/venv/
 *.pyc
 __pycache__/

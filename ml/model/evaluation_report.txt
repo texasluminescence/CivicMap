@@ -1,415 +1,336 @@
-====================================================================
-  CIVICMAP HYBRID MODEL — WEIGHT EVALUATION REPORT
-  Generated: 2026-04-08 21:15 UTC
-====================================================================
+======================================================================
+  CivicMap Hybrid Model — Weight Comparison Evaluation
+  Generated: 2026-04-14 02:46 UTC
+======================================================================
 
-Loading model and events...
-  Loaded saved model from disk.
-  Events loaded: 60
+Seed users:
+  user-civic-1         1f40a60e-4c2a-54a0-8d66-1fb056853c03
+  user-civic-2         e89513a6-d54c-5fea-a156-bcd86ce6ecde
+  user-arts-1          c9586f0f-0bb6-5860-8e4d-bb7fd9b57589
+  user-new-1           e7d97e11-9445-5967-82a5-e44ad58c02c5
 
---------------------------------------------------------------------
-  USER: user-civic-1  |  Broad civic engagement
-  UUID: 1f40a60e-4c2a-54a0-8d66-1fb056853c03
-  Interactions: 12  |  Cold-start: False
---------------------------------------------------------------------
+======================================================================
+  CONFIG: content_only (1.0 / 0.0)
+======================================================================
 
-  [content-only]  content=1.0  collab=0.0
-    1. Austin City Council Meeting                        score=1.334  (c=0.834 cf=1.0)
-    2. Virtual Environmental Justice Town Hall            score=1.307  (c=0.807 cf=1.0)
-    3. Public Safety Community Meeting                    score=1.3  (c=0.8 cf=1.0)
-    4. South Austin Youth Civic Fair                      score=1.299  (c=0.799 cf=1.0)
-    5. North Austin Civic Data Walkthrough                score=1.298  (c=0.798 cf=1.0)
+  [user-civic-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.334    0.834      1.196      Austin City Council Meeting
+  2     1.307    0.807      0.500      Virtual Environmental Justice Town Hall
+  3     1.300    0.800      1.107      Public Safety Community Meeting
+  4     1.299    0.799      1.000      South Austin Youth Civic Fair
+  5     1.298    0.798      0.983      North Austin Civic Data Walkthrough
+  6     1.291    0.791      1.119      Civic Film Screening Democracy in Motion
+  7     1.283    0.783      0.750      Austin Public Transit Feedback Session
+  8     1.280    0.780      1.115      East Austin Affordable Housing Forum
+  9     1.279    0.779      0.983      South Austin Transportation Open House
+  10    1.277    0.777      0.983      North Austin Library Board Meeting
 
-  [70/30]  content=0.7  collab=0.3
-    1. Education and Equity Town Hall                     score=1.327  (c=0.752 cf=1.5)
-    2. East Austin Arts Advocacy Roundtable               score=1.315  (c=0.736 cf=1.5)
-    3. Austin City Council Meeting                        score=1.293  (c=0.834 cf=1.196)
-    4. Campus Student Advocacy Training                   score=1.285  (c=0.692 cf=1.5)
-    5. Public Safety Community Meeting                    score=1.242  (c=0.8 cf=1.107)
+  [user-civic-2]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.327    0.827      1.500      Local Government 101 Workshop
+  2     1.320    0.820      1.199      Austin City Council Meeting
+  3     1.311    0.811      1.111      Virtual Austin Budget Town Hall
+  4     1.306    0.806      1.107      Public Safety Community Meeting
+  5     1.300    0.800      1.000      South Austin Youth Civic Fair
+  6     1.283    0.783      0.983      North Austin Civic Data Walkthrough
+  7     1.282    0.782      1.126      Civic Film Screening Democracy in Motion
+  8     1.277    0.777      1.122      East Austin Affordable Housing Forum
+  9     1.275    0.775      0.983      West Austin Transportation Safety Walk
+  10    1.275    0.775      0.983      North Austin Library Board Meeting
 
-  [60/40]  content=0.6  collab=0.4
-    1. Education and Equity Town Hall                     score=1.351  (c=0.752 cf=1.5)
-    2. East Austin Arts Advocacy Roundtable               score=1.342  (c=0.736 cf=1.5)
-    3. Campus Student Advocacy Training                   score=1.315  (c=0.692 cf=1.5)
-    4. Austin City Council Meeting                        score=1.279  (c=0.834 cf=1.196)
-    5. South Austin Housing Co-op Info Session            score=1.24  (c=0.742 cf=1.237)
+  [user-arts-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.338    0.838      0.797      West Austin Neighborhood Budget Workshop
+  2     1.326    0.826      1.000      Central Austin Civic Volunteer Orientati
+  3     1.319    0.819      1.000      South Austin Youth Civic Fair
+  4     1.306    0.806      1.198      Austin City Council Meeting
+  5     1.304    0.804      1.500      Local Government 101 Workshop
+  6     1.300    0.800      1.124      East Austin Affordable Housing Forum
+  7     1.299    0.799      0.500      Virtual Environmental Justice Town Hall
+  8     1.298    0.798      0.983      North Austin Library Board Meeting
+  9     1.283    0.783      0.983      South Austin Transportation Open House
+  10    1.281    0.781      1.500      Education and Equity Town Hall
 
-  [50/50]  content=0.5  collab=0.5
-    1. Education and Equity Town Hall                     score=1.376  (c=0.752 cf=1.5)
-    2. East Austin Arts Advocacy Roundtable               score=1.368  (c=0.736 cf=1.5)
-    3. Campus Student Advocacy Training                   score=1.346  (c=0.692 cf=1.5)
-    4. Austin City Council Meeting                        score=1.265  (c=0.834 cf=1.196)
-    5. South Austin Housing Co-op Info Session            score=1.24  (c=0.742 cf=1.237)
+  [user-new-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.263    0.763      1.000      Online Housing Rights Legal Clinic
+  2     1.253    0.753      0.500      Campus Policy Debate Night
+  3     1.246    0.746      0.500      Virtual Environmental Justice Town Hall
+  4     1.243    0.743      1.250      Central Neighborhood Association Summit
+  5     1.235    0.735      1.198      West Austin Neighborhood Budget Workshop
+  6     1.227    0.727      1.340      East Austin Affordable Housing Forum
+  7     1.220    0.720      1.100      Public Safety Community Meeting
+  8     1.212    0.712      0.983      Campus Student Advocacy Training
+  9     1.203    0.703      0.983      West Austin Transportation Safety Walk
+  10    1.202    0.702      0.983      Education and Equity Town Hall
 
-  Shift content-only → 70/30: 3/5 top events changed
-  Shift 70/30 → 60/40: 1/5 top events changed
-  Shift 60/40 → 50/50: 0/5 top events changed
+  Overlap between users at this config:
+    user-civic-1 vs user-civic-2: 70%  ✗ (high overlap)
+    user-civic-1 vs user-arts-1: 60%  ✗ (high overlap)
+    user-civic-1 vs user-new-1: 30%  ~ (some overlap)
+    user-civic-2 vs user-arts-1: 50%  ~ (some overlap)
+    user-civic-2 vs user-new-1: 30%  ~ (some overlap)
+    user-arts-1 vs user-new-1: 40%  ~ (some overlap)
 
---------------------------------------------------------------------
-  USER: user-arts-1  |  Arts & culture
-  UUID: c9586f0f-0bb6-5860-8e4d-bb7fd9b57589
-  Interactions: 12  |  Cold-start: False
---------------------------------------------------------------------
+======================================================================
+  CONFIG: hybrid_70_30 (0.7 / 0.3)
+======================================================================
 
-  [content-only]  content=1.0  collab=0.0
-    1. West Austin Neighborhood Budget Workshop           score=1.338  (c=0.838 cf=1.0)
-    2. Central Austin Civic Volunteer Orientation         score=1.326  (c=0.826 cf=1.0)
-    3. South Austin Youth Civic Fair                      score=1.319  (c=0.819 cf=1.0)
-    4. Austin City Council Meeting                        score=1.306  (c=0.806 cf=1.0)
-    5. Local Government 101 Workshop                      score=1.304  (c=0.804 cf=1.0)
+  [user-civic-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.327    0.752      1.500      Education and Equity Town Hall
+  2     1.315    0.736      1.500      East Austin Arts Advocacy Roundtable
+  3     1.293    0.834      1.196      Austin City Council Meeting
+  4     1.285    0.692      1.500      Campus Student Advocacy Training
+  5     1.242    0.800      1.107      Public Safety Community Meeting
+  6     1.241    0.742      1.237      South Austin Housing Co-op Info Session
+  7     1.240    0.791      1.119      Civic Film Screening Democracy in Motion
+  8     1.233    0.758      1.175      Civic Hackathon Tech for Good
+  9     1.231    0.780      1.115      East Austin Affordable Housing Forum
+  10    1.209    0.799      1.000      South Austin Youth Civic Fair
 
-  [70/30]  content=0.7  collab=0.3
-    1. Local Government 101 Workshop                      score=1.363  (c=0.804 cf=1.5)
-    2. Education and Equity Town Hall                     score=1.346  (c=0.781 cf=1.5)
-    3. Campus Student Advocacy Training                   score=1.296  (c=0.709 cf=1.5)
-    4. Austin City Council Meeting                        score=1.273  (c=0.806 cf=1.198)
-    5. East Austin Affordable Housing Forum               score=1.247  (c=0.8 cf=1.124)
+  [user-civic-2]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.379    0.827      1.500      Local Government 101 Workshop
+  2     1.331    0.758      1.500      Education and Equity Town Hall
+  3     1.315    0.736      1.500      East Austin Arts Advocacy Roundtable
+  4     1.309    0.727      1.500      Campus Student Advocacy Training
+  5     1.284    0.820      1.199      Austin City Council Meeting
+  6     1.276    0.680      1.500      Sustainability and Climate Education Nig
+  7     1.251    0.811      1.111      Virtual Austin Budget Town Hall
+  8     1.246    0.806      1.107      Public Safety Community Meeting
+  9     1.238    0.735      1.244      South Austin Housing Co-op Info Session
+  10    1.235    0.782      1.126      Civic Film Screening Democracy in Motion
 
-  [60/40]  content=0.6  collab=0.4
-    1. Local Government 101 Workshop                      score=1.382  (c=0.804 cf=1.5)
-    2. Education and Equity Town Hall                     score=1.368  (c=0.781 cf=1.5)
-    3. Campus Student Advocacy Training                   score=1.325  (c=0.709 cf=1.5)
-    4. Austin City Council Meeting                        score=1.263  (c=0.806 cf=1.198)
-    5. East Austin Affordable Housing Forum               score=1.23  (c=0.8 cf=1.124)
+  [user-arts-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.363    0.804      1.500      Local Government 101 Workshop
+  2     1.346    0.781      1.500      Education and Equity Town Hall
+  3     1.296    0.709      1.500      Campus Student Advocacy Training
+  4     1.273    0.806      1.198      Austin City Council Meeting
+  5     1.247    0.800      1.124      East Austin Affordable Housing Forum
+  6     1.228    0.826      1.000      Central Austin Civic Volunteer Orientati
+  7     1.223    0.819      1.000      South Austin Youth Civic Fair
+  8     1.217    0.737      1.170      Civic Hackathon Tech for Good
+  9     1.210    0.755      1.107      Public Safety Community Meeting
+  10    1.208    0.753      1.105      Austin Voter Registration Drive
 
-  [50/50]  content=0.5  collab=0.5
-    1. Local Government 101 Workshop                      score=1.402  (c=0.804 cf=1.5)
-    2. Education and Equity Town Hall                     score=1.39  (c=0.781 cf=1.5)
-    3. Campus Student Advocacy Training                   score=1.354  (c=0.709 cf=1.5)
-    4. Austin City Council Meeting                        score=1.252  (c=0.806 cf=1.198)
-    5. East Austin Affordable Housing Forum               score=1.212  (c=0.8 cf=1.124)
+  [user-new-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.278    0.683      1.500      Local Government 101 Workshop
+  2     1.270    0.671      1.500      East Austin Arts Advocacy Roundtable
+  3     1.261    0.727      1.340      East Austin Affordable Housing Forum
+  4     1.245    0.743      1.250      Central Neighborhood Association Summit
+  5     1.224    0.735      1.198      West Austin Neighborhood Budget Workshop
+  6     1.214    0.699      1.250      South Austin Housing Co-op Info Session
+  7     1.184    0.720      1.100      Public Safety Community Meeting
+  8     1.184    0.763      1.000      Online Housing Rights Legal Clinic
+  9     1.170    0.672      1.167      Virtual Austin Budget Town Hall
+  10    1.160    0.689      1.093      UT Austin Civic Engagement Workshop
 
-  Shift content-only → 70/30: 3/5 top events changed
-  Shift 70/30 → 60/40: 0/5 top events changed
-  Shift 60/40 → 50/50: 0/5 top events changed
+  Overlap between users at this config:
+    user-civic-1 vs user-civic-2: 70%  ✗ (high overlap)
+    user-civic-1 vs user-arts-1: 70%  ✗ (high overlap)
+    user-civic-1 vs user-new-1: 40%  ~ (some overlap)
+    user-civic-2 vs user-arts-1: 50%  ~ (some overlap)
+    user-civic-2 vs user-new-1: 50%  ~ (some overlap)
+    user-arts-1 vs user-new-1: 30%  ~ (some overlap)
 
---------------------------------------------------------------------
-  USER: user-env-1  |  Environment / climate activist
-  UUID: f025a02d-3c58-5588-b6dc-e2317a62866f
-  Interactions: 9  |  Cold-start: False
---------------------------------------------------------------------
+======================================================================
+  CONFIG: hybrid_60_40 (0.6 / 0.4)
+======================================================================
 
-  [content-only]  content=1.0  collab=0.0
-    1. UT Austin Civic Engagement Workshop                score=1.287  (c=0.787 cf=1.0)
-    2. South Austin Youth Civic Fair                      score=1.276  (c=0.776 cf=1.0)
-    3. Central Austin Civic Volunteer Orientation         score=1.256  (c=0.756 cf=1.0)
-    4. West Austin Neighborhood Budget Workshop           score=1.251  (c=0.751 cf=1.0)
-    5. East Austin Arts Advocacy Roundtable               score=1.248  (c=0.748 cf=1.0)
+  [user-civic-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.351    0.752      1.500      Education and Equity Town Hall
+  2     1.342    0.736      1.500      East Austin Arts Advocacy Roundtable
+  3     1.315    0.692      1.500      Campus Student Advocacy Training
+  4     1.279    0.834      1.196      Austin City Council Meeting
+  5     1.240    0.742      1.237      South Austin Housing Co-op Info Session
+  6     1.225    0.758      1.175      Civic Hackathon Tech for Good
+  7     1.222    0.791      1.119      Civic Film Screening Democracy in Motion
+  8     1.222    0.800      1.107      Public Safety Community Meeting
+  9     1.214    0.780      1.115      East Austin Affordable Housing Forum
+  10    1.179    0.799      1.000      South Austin Youth Civic Fair
 
-  [70/30]  content=0.7  collab=0.3
-    1. Central Neighborhood Association Summit            score=1.318  (c=0.74 cf=1.5)
-    2. Local Government 101 Workshop                      score=1.303  (c=0.718 cf=1.5)
-    3. Education and Equity Town Hall                     score=1.3  (c=0.714 cf=1.5)
-    4. Neighborhood Policy Listening Session              score=1.291  (c=0.702 cf=1.5)
-    5. Campus Student Advocacy Training                   score=1.288  (c=0.696 cf=1.5)
+  [user-civic-2]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.396    0.827      1.500      Local Government 101 Workshop
+  2     1.355    0.758      1.500      Education and Equity Town Hall
+  3     1.341    0.736      1.500      East Austin Arts Advocacy Roundtable
+  4     1.336    0.727      1.500      Campus Student Advocacy Training
+  5     1.308    0.680      1.500      Sustainability and Climate Education Nig
+  6     1.271    0.820      1.199      Austin City Council Meeting
+  7     1.239    0.735      1.244      South Austin Housing Co-op Info Session
+  8     1.235    0.715      1.266      Parks and Recreation Improvement Forum
+  9     1.231    0.811      1.111      Virtual Austin Budget Town Hall
+  10    1.226    0.806      1.107      Public Safety Community Meeting
 
-  [60/40]  content=0.6  collab=0.4
-    1. Central Neighborhood Association Summit            score=1.344  (c=0.74 cf=1.5)
-    2. Local Government 101 Workshop                      score=1.331  (c=0.718 cf=1.5)
-    3. Education and Equity Town Hall                     score=1.329  (c=0.714 cf=1.5)
-    4. Neighborhood Policy Listening Session              score=1.321  (c=0.702 cf=1.5)
-    5. Campus Student Advocacy Training                   score=1.318  (c=0.696 cf=1.5)
+  [user-arts-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.382    0.804      1.500      Local Government 101 Workshop
+  2     1.368    0.781      1.500      Education and Equity Town Hall
+  3     1.325    0.709      1.500      Campus Student Advocacy Training
+  4     1.263    0.806      1.198      Austin City Council Meeting
+  5     1.230    0.800      1.124      East Austin Affordable Housing Forum
+  6     1.210    0.737      1.170      Civic Hackathon Tech for Good
+  7     1.196    0.826      1.000      Central Austin Civic Volunteer Orientati
+  8     1.195    0.755      1.107      Public Safety Community Meeting
+  9     1.194    0.753      1.105      Austin Voter Registration Drive
+  10    1.191    0.819      1.000      South Austin Youth Civic Fair
 
-  [50/50]  content=0.5  collab=0.5
-    1. Central Neighborhood Association Summit            score=1.37  (c=0.74 cf=1.5)
-    2. Local Government 101 Workshop                      score=1.359  (c=0.718 cf=1.5)
-    3. Education and Equity Town Hall                     score=1.357  (c=0.714 cf=1.5)
-    4. Neighborhood Policy Listening Session              score=1.351  (c=0.702 cf=1.5)
-    5. Campus Student Advocacy Training                   score=1.348  (c=0.696 cf=1.5)
+  [user-new-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.310    0.683      1.500      Local Government 101 Workshop
+  2     1.303    0.671      1.500      East Austin Arts Advocacy Roundtable
+  3     1.272    0.727      1.340      East Austin Affordable Housing Forum
+  4     1.246    0.743      1.250      Central Neighborhood Association Summit
+  5     1.220    0.735      1.198      West Austin Neighborhood Budget Workshop
+  6     1.219    0.699      1.250      South Austin Housing Co-op Info Session
+  7     1.172    0.720      1.100      Public Safety Community Meeting
+  8     1.170    0.672      1.167      Virtual Austin Budget Town Hall
+  9     1.158    0.763      1.000      Online Housing Rights Legal Clinic
+  10    1.151    0.689      1.093      UT Austin Civic Engagement Workshop
 
-  Shift content-only → 70/30: 5/5 top events changed
-  Shift 70/30 → 60/40: 0/5 top events changed
-  Shift 60/40 → 50/50: 0/5 top events changed
+  Overlap between users at this config:
+    user-civic-1 vs user-civic-2: 60%  ✗ (high overlap)
+    user-civic-1 vs user-arts-1: 70%  ✗ (high overlap)
+    user-civic-1 vs user-new-1: 40%  ~ (some overlap)
+    user-civic-2 vs user-arts-1: 50%  ~ (some overlap)
+    user-civic-2 vs user-new-1: 50%  ~ (some overlap)
+    user-arts-1 vs user-new-1: 30%  ~ (some overlap)
 
---------------------------------------------------------------------
-  USER: user-housing-1  |  Housing & tenant-rights advocate
-  UUID: 3be84e4f-cb4e-50b4-bdd2-7bbdcb996ed9
-  Interactions: 12  |  Cold-start: False
---------------------------------------------------------------------
+======================================================================
+  CONFIG: hybrid_50_50 (0.5 / 0.5)
+======================================================================
 
-  [content-only]  content=1.0  collab=0.0
-    1. Virtual Austin Budget Town Hall                    score=1.315  (c=0.815 cf=1.0)
-    2. South Austin Transportation Open House             score=1.303  (c=0.803 cf=1.0)
-    3. East Austin Transit Equity Session                 score=1.274  (c=0.774 cf=1.0)
-    4. Public Safety Community Meeting                    score=1.273  (c=0.773 cf=1.0)
-    5. Education and Equity Town Hall                     score=1.272  (c=0.772 cf=1.0)
+  [user-civic-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.376    0.752      1.500      Education and Equity Town Hall
+  2     1.368    0.736      1.500      East Austin Arts Advocacy Roundtable
+  3     1.346    0.692      1.500      Campus Student Advocacy Training
+  4     1.265    0.834      1.196      Austin City Council Meeting
+  5     1.240    0.742      1.237      South Austin Housing Co-op Info Session
+  6     1.216    0.758      1.175      Civic Hackathon Tech for Good
+  7     1.205    0.791      1.119      Civic Film Screening Democracy in Motion
+  8     1.203    0.800      1.107      Public Safety Community Meeting
+  9     1.197    0.780      1.115      East Austin Affordable Housing Forum
+  10    1.149    0.799      1.000      South Austin Youth Civic Fair
 
-  [70/30]  content=0.7  collab=0.3
-    1. East Austin Transit Equity Session                 score=1.342  (c=0.774 cf=1.5)
-    2. Education and Equity Town Hall                     score=1.34  (c=0.772 cf=1.5)
-    3. West Austin Transportation Safety Walk             score=1.324  (c=0.749 cf=1.5)
-    4. East Austin Arts Advocacy Roundtable               score=1.316  (c=0.737 cf=1.5)
-    5. Local Government 101 Workshop                      score=1.307  (c=0.724 cf=1.5)
+  [user-civic-2]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.413    0.827      1.500      Local Government 101 Workshop
+  2     1.379    0.758      1.500      Education and Equity Town Hall
+  3     1.368    0.736      1.500      East Austin Arts Advocacy Roundtable
+  4     1.363    0.727      1.500      Campus Student Advocacy Training
+  5     1.340    0.680      1.500      Sustainability and Climate Education Nig
+  6     1.259    0.820      1.199      Austin City Council Meeting
+  7     1.240    0.715      1.266      Parks and Recreation Improvement Forum
+  8     1.239    0.735      1.244      South Austin Housing Co-op Info Session
+  9     1.215    0.760      1.169      Civic Hackathon Tech for Good
+  10    1.211    0.811      1.111      Virtual Austin Budget Town Hall
 
-  [60/40]  content=0.6  collab=0.4
-    1. East Austin Transit Equity Session                 score=1.364  (c=0.774 cf=1.5)
-    2. Education and Equity Town Hall                     score=1.363  (c=0.772 cf=1.5)
-    3. West Austin Transportation Safety Walk             score=1.349  (c=0.749 cf=1.5)
-    4. East Austin Arts Advocacy Roundtable               score=1.342  (c=0.737 cf=1.5)
-    5. Local Government 101 Workshop                      score=1.334  (c=0.724 cf=1.5)
+  [user-arts-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.402    0.804      1.500      Local Government 101 Workshop
+  2     1.390    0.781      1.500      Education and Equity Town Hall
+  3     1.354    0.709      1.500      Campus Student Advocacy Training
+  4     1.252    0.806      1.198      Austin City Council Meeting
+  5     1.212    0.800      1.124      East Austin Affordable Housing Forum
+  6     1.203    0.737      1.170      Civic Hackathon Tech for Good
+  7     1.181    0.755      1.107      Public Safety Community Meeting
+  8     1.179    0.753      1.105      Austin Voter Registration Drive
+  9     1.163    0.826      1.000      Central Austin Civic Volunteer Orientati
+  10    1.159    0.819      1.000      South Austin Youth Civic Fair
 
-  [50/50]  content=0.5  collab=0.5
-    1. East Austin Transit Equity Session                 score=1.387  (c=0.774 cf=1.5)
-    2. Education and Equity Town Hall                     score=1.386  (c=0.772 cf=1.5)
-    3. West Austin Transportation Safety Walk             score=1.374  (c=0.749 cf=1.5)
-    4. East Austin Arts Advocacy Roundtable               score=1.368  (c=0.737 cf=1.5)
-    5. Local Government 101 Workshop                      score=1.362  (c=0.724 cf=1.5)
+  [user-new-1]
+  Rank  Score    Content    Collab     Title
+  --------------------------------------------------------------
+  1     1.341    0.683      1.500      Local Government 101 Workshop
+  2     1.336    0.671      1.500      East Austin Arts Advocacy Roundtable
+  3     1.283    0.727      1.340      East Austin Affordable Housing Forum
+  4     1.247    0.743      1.250      Central Neighborhood Association Summit
+  5     1.224    0.699      1.250      South Austin Housing Co-op Info Session
+  6     1.216    0.735      1.198      West Austin Neighborhood Budget Workshop
+  7     1.169    0.672      1.167      Virtual Austin Budget Town Hall
+  8     1.160    0.720      1.100      Public Safety Community Meeting
+  9     1.141    0.689      1.093      UT Austin Civic Engagement Workshop
+  10    1.140    0.645      1.136      Civic Film Screening Democracy in Motion
 
-  Shift content-only → 70/30: 3/5 top events changed
-  Shift 70/30 → 60/40: 0/5 top events changed
-  Shift 60/40 → 50/50: 0/5 top events changed
+  Overlap between users at this config:
+    user-civic-1 vs user-civic-2: 60%  ✗ (high overlap)
+    user-civic-1 vs user-arts-1: 70%  ✗ (high overlap)
+    user-civic-1 vs user-new-1: 50%  ~ (some overlap)
+    user-civic-2 vs user-arts-1: 50%  ~ (some overlap)
+    user-civic-2 vs user-new-1: 40%  ~ (some overlap)
+    user-arts-1 vs user-new-1: 30%  ~ (some overlap)
 
---------------------------------------------------------------------
-  USER: user-transit-1  |  Transportation & transit rider
-  UUID: 315db5d3-1d38-521f-80e8-a9d8818c690d
-  Interactions: 9  |  Cold-start: False
---------------------------------------------------------------------
+======================================================================
+  WEIGHT SHIFT ANALYSIS
+  How many top-5 recommendations change between configs?
+======================================================================
 
-  [content-only]  content=1.0  collab=0.0
-    1. East Austin Affordable Housing Forum               score=1.327  (c=0.827 cf=1.0)
-    2. Virtual Austin Budget Town Hall                    score=1.309  (c=0.809 cf=1.0)
-    3. West Austin Neighborhood Budget Workshop           score=1.296  (c=0.796 cf=1.0)
-    4. Public Safety Community Meeting                    score=1.292  (c=0.792 cf=1.0)
-    5. Education and Equity Town Hall                     score=1.278  (c=0.778 cf=1.0)
+  [user-civic-1]
+    content_only (1.0 / 0.0) → hybrid_70_30 (0.7 / 0.3): 3/5 events changed
+    hybrid_70_30 (0.7 / 0.3) → hybrid_60_40 (0.6 / 0.4): 1/5 events changed
+    hybrid_60_40 (0.6 / 0.4) → hybrid_50_50 (0.5 / 0.5): 0/5 events changed
 
-  [70/30]  content=0.7  collab=0.3
-    1. Education and Equity Town Hall                     score=1.345  (c=0.778 cf=1.5)
-    2. Neighborhood Policy Listening Session              score=1.338  (c=0.769 cf=1.5)
-    3. East Austin Affordable Housing Forum               score=1.331  (c=0.827 cf=1.34)
-    4. Local Government 101 Workshop                      score=1.298  (c=0.711 cf=1.5)
-    5. Campus Student Advocacy Training                   score=1.236  (c=0.622 cf=1.5)
+  [user-civic-2]
+    content_only (1.0 / 0.0) → hybrid_70_30 (0.7 / 0.3): 3/5 events changed
+    hybrid_70_30 (0.7 / 0.3) → hybrid_60_40 (0.6 / 0.4): 1/5 events changed
+    hybrid_60_40 (0.6 / 0.4) → hybrid_50_50 (0.5 / 0.5): 0/5 events changed
 
-  [60/40]  content=0.6  collab=0.4
-    1. Education and Equity Town Hall                     score=1.367  (c=0.778 cf=1.5)
-    2. Neighborhood Policy Listening Session              score=1.361  (c=0.769 cf=1.5)
-    3. East Austin Affordable Housing Forum               score=1.333  (c=0.827 cf=1.34)
-    4. Local Government 101 Workshop                      score=1.326  (c=0.711 cf=1.5)
-    5. Campus Student Advocacy Training                   score=1.273  (c=0.622 cf=1.5)
+  [user-arts-1]
+    content_only (1.0 / 0.0) → hybrid_70_30 (0.7 / 0.3): 3/5 events changed
+    hybrid_70_30 (0.7 / 0.3) → hybrid_60_40 (0.6 / 0.4): 0/5 events changed
+    hybrid_60_40 (0.6 / 0.4) → hybrid_50_50 (0.5 / 0.5): 0/5 events changed
 
-  [50/50]  content=0.5  collab=0.5
-    1. Education and Equity Town Hall                     score=1.389  (c=0.778 cf=1.5)
-    2. Neighborhood Policy Listening Session              score=1.384  (c=0.769 cf=1.5)
-    3. Local Government 101 Workshop                      score=1.355  (c=0.711 cf=1.5)
-    4. East Austin Affordable Housing Forum               score=1.334  (c=0.827 cf=1.34)
-    5. Campus Student Advocacy Training                   score=1.311  (c=0.622 cf=1.5)
+  [user-new-1]
+    content_only (1.0 / 0.0) → hybrid_70_30 (0.7 / 0.3): 3/5 events changed
+    hybrid_70_30 (0.7 / 0.3) → hybrid_60_40 (0.6 / 0.4): 0/5 events changed
+    hybrid_60_40 (0.6 / 0.4) → hybrid_50_50 (0.5 / 0.5): 1/5 events changed
 
-  Shift content-only → 70/30: 3/5 top events changed
-  Shift 70/30 → 60/40: 0/5 top events changed
-  Shift 60/40 → 50/50: 0/5 top events changed
+======================================================================
+  STANDUP EXAMPLES
+  Content-only vs Hybrid (70/30) for each user
+======================================================================
 
---------------------------------------------------------------------
-  USER: user-edu-1  |  Education & equity focus
-  UUID: a3474b10-0c33-5fcc-afb7-841c38b586d5
-  Interactions: 12  |  Cold-start: False
---------------------------------------------------------------------
+  user-civic-1:
+    Content-only top 5: ['Austin City Council Meeting', 'Virtual Environmental Justice Town Hall', 'Public Safety Community Meeting', 'South Austin Youth Civic Fair', 'North Austin Civic Data Walkthrough']
+    Hybrid 70/30 top 5: ['Education and Equity Town Hall', 'East Austin Arts Advocacy Roundtable', 'Austin City Council Meeting', 'Campus Student Advocacy Training', 'Public Safety Community Meeting']
+    Collab-boosted in (events new to top 5): ['Education and Equity Town Hall', 'East Austin Arts Advocacy Roundtable', 'Campus Student Advocacy Training']
 
-  [content-only]  content=1.0  collab=0.0
-    1. Civic Film Screening Democracy in Motion           score=1.316  (c=0.816 cf=1.0)
-    2. Central Austin Civic Volunteer Orientation         score=1.312  (c=0.812 cf=1.0)
-    3. West Austin Environmental Stewardship Day          score=1.29  (c=0.79 cf=1.0)
-    4. Campus Voter Education Session                     score=1.28  (c=0.78 cf=1.0)
-    5. North Austin Civic Data Walkthrough                score=1.279  (c=0.779 cf=1.0)
+  user-civic-2:
+    Content-only top 5: ['Local Government 101 Workshop', 'Austin City Council Meeting', 'Virtual Austin Budget Town Hall', 'Public Safety Community Meeting', 'South Austin Youth Civic Fair']
+    Hybrid 70/30 top 5: ['Local Government 101 Workshop', 'Education and Equity Town Hall', 'East Austin Arts Advocacy Roundtable', 'Campus Student Advocacy Training', 'Austin City Council Meeting']
+    Collab-boosted in (events new to top 5): ['Education and Equity Town Hall', 'East Austin Arts Advocacy Roundtable', 'Campus Student Advocacy Training']
 
-  [70/30]  content=0.7  collab=0.3
-    1. Sustainability and Climate Education Night         score=1.326  (c=0.751 cf=1.5)
-    2. East Austin Arts Advocacy Roundtable               score=1.321  (c=0.744 cf=1.5)
-    3. West Austin Transportation Safety Walk             score=1.303  (c=0.718 cf=1.5)
-    4. East Austin Transit Equity Session                 score=1.294  (c=0.706 cf=1.5)
-    5. Neighborhood Policy Listening Session              score=1.273  (c=0.73 cf=1.372)
+  user-arts-1:
+    Content-only top 5: ['West Austin Neighborhood Budget Workshop', 'Central Austin Civic Volunteer Orientation', 'South Austin Youth Civic Fair', 'Austin City Council Meeting', 'Local Government 101 Workshop']
+    Hybrid 70/30 top 5: ['Local Government 101 Workshop', 'Education and Equity Town Hall', 'Campus Student Advocacy Training', 'Austin City Council Meeting', 'East Austin Affordable Housing Forum']
+    Collab-boosted in (events new to top 5): ['Education and Equity Town Hall', 'Campus Student Advocacy Training', 'East Austin Affordable Housing Forum']
 
-  [60/40]  content=0.6  collab=0.4
-    1. Sustainability and Climate Education Night         score=1.351  (c=0.751 cf=1.5)
-    2. East Austin Arts Advocacy Roundtable               score=1.347  (c=0.744 cf=1.5)
-    3. West Austin Transportation Safety Walk             score=1.331  (c=0.718 cf=1.5)
-    4. East Austin Transit Equity Session                 score=1.323  (c=0.706 cf=1.5)
-    5. Neighborhood Policy Listening Session              score=1.287  (c=0.73 cf=1.372)
+  user-new-1:
+    Content-only top 5: ['Online Housing Rights Legal Clinic', 'Campus Policy Debate Night', 'Virtual Environmental Justice Town Hall', 'Central Neighborhood Association Summit', 'West Austin Neighborhood Budget Workshop']
+    Hybrid 70/30 top 5: ['Local Government 101 Workshop', 'East Austin Arts Advocacy Roundtable', 'East Austin Affordable Housing Forum', 'Central Neighborhood Association Summit', 'West Austin Neighborhood Budget Workshop']
+    Collab-boosted in (events new to top 5): ['Local Government 101 Workshop', 'East Austin Arts Advocacy Roundtable', 'East Austin Affordable Housing Forum']
 
-  [50/50]  content=0.5  collab=0.5
-    1. Sustainability and Climate Education Night         score=1.375  (c=0.751 cf=1.5)
-    2. East Austin Arts Advocacy Roundtable               score=1.372  (c=0.744 cf=1.5)
-    3. West Austin Transportation Safety Walk             score=1.359  (c=0.718 cf=1.5)
-    4. East Austin Transit Equity Session                 score=1.353  (c=0.706 cf=1.5)
-    5. Neighborhood Policy Listening Session              score=1.301  (c=0.73 cf=1.372)
-
-  Shift content-only → 70/30: 5/5 top events changed
-  Shift 70/30 → 60/40: 0/5 top events changed
-  Shift 60/40 → 50/50: 0/5 top events changed
-
-====================================================================
-  CROSS-USER DIFFERENTIATION  (top-10 overlap, 60/40 blend)
-====================================================================
-  user-civic-1       vs user-arts-1         overlap=70%  HIGH
-  user-civic-1       vs user-env-1          overlap=50%  ~
-  user-civic-1       vs user-housing-1      overlap=40%  ~
-  user-civic-1       vs user-transit-1      overlap=40%  ~
-  user-civic-1       vs user-edu-1          overlap=40%  ~
-  user-arts-1        vs user-env-1          overlap=60%  HIGH
-  user-arts-1        vs user-housing-1      overlap=40%  ~
-  user-arts-1        vs user-transit-1      overlap=60%  HIGH
-  user-arts-1        vs user-edu-1          overlap=10%  ✓
-  user-env-1         vs user-housing-1      overlap=30%  ~
-  user-env-1         vs user-transit-1      overlap=70%  HIGH
-  user-env-1         vs user-edu-1          overlap=30%  ~
-  user-housing-1     vs user-transit-1      overlap=50%  ~
-  user-housing-1     vs user-edu-1          overlap=50%  ~
-  user-transit-1     vs user-edu-1          overlap=20%  ✓
-
-====================================================================
-  STANDUP EXAMPLES — Content-only vs Hybrid (60/40)
-====================================================================
-
-  ── user-civic-1 (Broad civic engagement) ──
-  Content-only top 5:
-    • Austin City Council Meeting
-    • Virtual Environmental Justice Town Hall
-    • Public Safety Community Meeting
-    • South Austin Youth Civic Fair
-    • North Austin Civic Data Walkthrough
-  Hybrid (60/40) top 5:
-    • Education and Equity Town Hall                     ← collab boost
-    • East Austin Arts Advocacy Roundtable               ← collab boost
-    • Campus Student Advocacy Training                   ← collab boost
-    • Austin City Council Meeting                        
-    • South Austin Housing Co-op Info Session            ← collab boost
-  Collab surfaced 4 new event(s) not in content-only:
-    + "Education and Equity Town Hall"
-    + "East Austin Arts Advocacy Roundtable"
-    + "Campus Student Advocacy Training"
-    + "South Austin Housing Co-op Info Session"
-  Content-only had 4 event(s) displaced by collab signal:
-    - "Virtual Environmental Justice Town Hall"
-    - "Public Safety Community Meeting"
-    - "South Austin Youth Civic Fair"
-    - "North Austin Civic Data Walkthrough"
-
-  ── user-arts-1 (Arts & culture) ──
-  Content-only top 5:
-    • West Austin Neighborhood Budget Workshop
-    • Central Austin Civic Volunteer Orientation
-    • South Austin Youth Civic Fair
-    • Austin City Council Meeting
-    • Local Government 101 Workshop
-  Hybrid (60/40) top 5:
-    • Local Government 101 Workshop                      
-    • Education and Equity Town Hall                     ← collab boost
-    • Campus Student Advocacy Training                   ← collab boost
-    • Austin City Council Meeting                        
-    • East Austin Affordable Housing Forum               ← collab boost
-  Collab surfaced 3 new event(s) not in content-only:
-    + "Education and Equity Town Hall"
-    + "Campus Student Advocacy Training"
-    + "East Austin Affordable Housing Forum"
-  Content-only had 3 event(s) displaced by collab signal:
-    - "West Austin Neighborhood Budget Workshop"
-    - "Central Austin Civic Volunteer Orientation"
-    - "South Austin Youth Civic Fair"
-
-  ── user-env-1 (Environment / climate activist) ──
-  Content-only top 5:
-    • UT Austin Civic Engagement Workshop
-    • South Austin Youth Civic Fair
-    • Central Austin Civic Volunteer Orientation
-    • West Austin Neighborhood Budget Workshop
-    • East Austin Arts Advocacy Roundtable
-  Hybrid (60/40) top 5:
-    • Central Neighborhood Association Summit            ← collab boost
-    • Local Government 101 Workshop                      ← collab boost
-    • Education and Equity Town Hall                     ← collab boost
-    • Neighborhood Policy Listening Session              ← collab boost
-    • Campus Student Advocacy Training                   ← collab boost
-  Collab surfaced 5 new event(s) not in content-only:
-    + "Central Neighborhood Association Summit"
-    + "Local Government 101 Workshop"
-    + "Education and Equity Town Hall"
-    + "Neighborhood Policy Listening Session"
-    + "Campus Student Advocacy Training"
-  Content-only had 5 event(s) displaced by collab signal:
-    - "UT Austin Civic Engagement Workshop"
-    - "South Austin Youth Civic Fair"
-    - "Central Austin Civic Volunteer Orientation"
-    - "West Austin Neighborhood Budget Workshop"
-    - "East Austin Arts Advocacy Roundtable"
-
-  ── user-housing-1 (Housing & tenant-rights advocate) ──
-  Content-only top 5:
-    • Virtual Austin Budget Town Hall
-    • South Austin Transportation Open House
-    • East Austin Transit Equity Session
-    • Public Safety Community Meeting
-    • Education and Equity Town Hall
-  Hybrid (60/40) top 5:
-    • East Austin Transit Equity Session                 
-    • Education and Equity Town Hall                     
-    • West Austin Transportation Safety Walk             ← collab boost
-    • East Austin Arts Advocacy Roundtable               ← collab boost
-    • Local Government 101 Workshop                      ← collab boost
-  Collab surfaced 3 new event(s) not in content-only:
-    + "West Austin Transportation Safety Walk"
-    + "East Austin Arts Advocacy Roundtable"
-    + "Local Government 101 Workshop"
-  Content-only had 3 event(s) displaced by collab signal:
-    - "Virtual Austin Budget Town Hall"
-    - "South Austin Transportation Open House"
-    - "Public Safety Community Meeting"
-
-  ── user-transit-1 (Transportation & transit rider) ──
-  Content-only top 5:
-    • East Austin Affordable Housing Forum
-    • Virtual Austin Budget Town Hall
-    • West Austin Neighborhood Budget Workshop
-    • Public Safety Community Meeting
-    • Education and Equity Town Hall
-  Hybrid (60/40) top 5:
-    • Education and Equity Town Hall                     
-    • Neighborhood Policy Listening Session              ← collab boost
-    • East Austin Affordable Housing Forum               
-    • Local Government 101 Workshop                      ← collab boost
-    • Campus Student Advocacy Training                   ← collab boost
-  Collab surfaced 3 new event(s) not in content-only:
-    + "Neighborhood Policy Listening Session"
-    + "Local Government 101 Workshop"
-    + "Campus Student Advocacy Training"
-  Content-only had 3 event(s) displaced by collab signal:
-    - "Virtual Austin Budget Town Hall"
-    - "West Austin Neighborhood Budget Workshop"
-    - "Public Safety Community Meeting"
-
-  ── user-edu-1 (Education & equity focus) ──
-  Content-only top 5:
-    • Civic Film Screening Democracy in Motion
-    • Central Austin Civic Volunteer Orientation
-    • West Austin Environmental Stewardship Day
-    • Campus Voter Education Session
-    • North Austin Civic Data Walkthrough
-  Hybrid (60/40) top 5:
-    • Sustainability and Climate Education Night         ← collab boost
-    • East Austin Arts Advocacy Roundtable               ← collab boost
-    • West Austin Transportation Safety Walk             ← collab boost
-    • East Austin Transit Equity Session                 ← collab boost
-    • Neighborhood Policy Listening Session              ← collab boost
-  Collab surfaced 5 new event(s) not in content-only:
-    + "Sustainability and Climate Education Night"
-    + "East Austin Arts Advocacy Roundtable"
-    + "West Austin Transportation Safety Walk"
-    + "East Austin Transit Equity Session"
-    + "Neighborhood Policy Listening Session"
-  Content-only had 5 event(s) displaced by collab signal:
-    - "Civic Film Screening Democracy in Motion"
-    - "Central Austin Civic Volunteer Orientation"
-    - "West Austin Environmental Stewardship Day"
-    - "Campus Voter Education Session"
-    - "North Austin Civic Data Walkthrough"
-
-====================================================================
-  WEIGHT SUMMARY TABLE
-====================================================================
-  Config          Content   Collab   Notes
-  -------------- -------- --------   ------------------------------
-  content-only       100%       0%   cold-start safe, no CF signal
-  70/30               70%      30%   conservative blend
-  60/40               60%      40%   current default
-  50/50               50%      50%   equal weight, needs rich CF data
-
-====================================================================
+======================================================================
   END OF REPORT
-====================================================================
+======================================================================

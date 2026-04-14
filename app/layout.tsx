@@ -3,7 +3,12 @@ import ClientAuthWrapper from "@/components/ClientAuthWrapper";
 
 export const metadata = {
   title: "CivicMap",
-  description: "Get involved in local events",
+  description: "Discover and attend civic events in your community.",
+  openGraph: {
+    title: "CivicMap",
+    description: "Discover and attend civic events in your community.",
+    type: "website",
+  },
 };
 
 export const viewport = {

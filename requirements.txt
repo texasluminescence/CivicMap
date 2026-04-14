@@ -4,3 +4,4 @@ supabase
 postgrest
 pandas
 scikit-surprise
+sentence-transformers

@@ -142,11 +142,13 @@ export default function ProfilePage() {
         supabase
           .from("saved_events")
           .select("event_id, events(id, title, description, location, event_date, categories, tone)")
-          .eq("user_id", user.id),
+          .eq("user_id", user.id)
+          .limit(50),
         supabase
           .from("registered_events")
           .select("event_id, events(id, title, description, location, event_date, categories, tone)")
-          .eq("user_id", user.id),
+          .eq("user_id", user.id)
+          .limit(50),
       ]);
 
       const categoryNames: string[] = (catPrefs ?? [])
